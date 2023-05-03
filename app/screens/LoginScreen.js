@@ -4,10 +4,35 @@ import {React, useState} from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faSpotify} from '@fortawesome/free-brands-svg-icons/faSpotify'
 import {ResponseType, useAuthRequest} from 'expo-auth-session';
+import {CLIENT_ID, CLIENT_SECRET} from '../../components/hidden/clientSecret';
 
 
 export default LoginScreen = () => {
 
+
+    const discovery = {
+        authorizationEndpoint: "https://accounts.spotify.com/authorize",
+        tokenEndpoint: "https://accounts.spotify.com/api/token",
+    };
+
+    const [request, response, promptAsync] = useAuthRequest({
+        ResponseType: ResponseType.Token,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        scopes: [
+            "user-read-currentl-playing",
+            "user-read-recently-played",
+            "user-read-playback-state",
+            "user-top-read",
+            "user-modify-playback-state",
+            "streaming",
+            "user-read-email",
+            "user-read-private",
+        ],
+        usePKCE: false,
+        redirectURI: "exp://192.168.2.21:19000",
+
+    }, discovery);
 
 
 
