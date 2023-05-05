@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, Animated } from 'react-native'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, Animated, TouchableHighlight, TouchableOpacity } from 'react-native'
 import React, {useState, useRef} from 'react'
 import Slides from './OnboardSlides';
 import OnboardingItem from './OnboardingItem';
+import Paginator from './Paginator';
 
 export default Onboarding = () => {
 
@@ -26,7 +27,7 @@ export default Onboarding = () => {
 
         <FlatList  data={Slides} renderItem={({item}) => <OnboardingItem item={item}/>} 
         horizontal 
-        showsHorizontalScrollIndicator
+        showsHorizontalScrollIndicator={false}
          pagingEnabled 
          bounces={false} 
          keyExtractor={(item) => item.id}
@@ -38,19 +39,35 @@ export default Onboarding = () => {
          />
       </View>
 
-      <View>
 
+      <View style={styles.bottomBar}>
+        <Paginator style={{flex: 0.8, flexDirection: "row"}} data={Slides} scrollX={scrollX}/>
+
+
+
+
+        <TouchableOpacity style={{flex: 0.2, flexDirection: "row"}}>
+            <Text>Next</Text>
+        </TouchableOpacity>
       </View>
+
+
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 3,
+        flex: 7,
         justifyContent: "center",
         alignItems: "center",
         
+    },
+
+    bottomBar: {
+      flex: 1,
+      flexDirection: "row",
+      justifyContent: "space-between",
     },
 
 });
