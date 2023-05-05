@@ -1,10 +1,11 @@
 
 import { SafeAreaView, StyleSheet, Text, View, Dimensions, TouchableOpacity } from 'react-native'
-import {React, useState} from 'react'
+import {React, useEffect, useState} from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faSpotify} from '@fortawesome/free-brands-svg-icons/faSpotify'
 import {ResponseType, useAuthRequest} from 'expo-auth-session';
 import {CLIENT_ID, CLIENT_SECRET} from '../../components/hidden/clientSecret';
+import * as SecureStore from 'expo-secure-store';
 
 
 export default LoginScreen = () => {
@@ -20,7 +21,7 @@ export default LoginScreen = () => {
         clientId: CLIENT_ID,
         clientSecret: CLIENT_SECRET,
         scopes: [
-            "user-read-currentl-playing",
+            "user-read-currently-playing",
             "user-read-recently-played",
             "user-read-playback-state",
             "user-top-read",
@@ -30,13 +31,38 @@ export default LoginScreen = () => {
             "user-read-private",
         ],
         usePKCE: false,
-        redirectURI: "exp://192.168.2.21:19000",
+        redirectUri: "exp://192.168.2.21:19000",
 
     }, discovery);
 
+    useEffect(() => {
+        if(response?.type === "success"){
+            const access_token = Object.values(response.params)[0];
+            console.log('accessToken', access_token);
+            storeAccessToken(access_token);
+        }
 
+    }, [response]);
 
+    const storeAccessToken = async(accessToken) => {
+        await SecureStore.setItemAsync("access_token", accessToken);
+        console.log("stored token", accessToken);
+    }
 
+    const getAccessToken = async () => {
+        try{
+            const token = await SecureStore.getItemAsync("access_token");
+            if(token) {
+                return token;
+            } else{
+                console.log('no token found');
+                return null;
+            }
+        } catch (e){
+            console.log('failed to get token');
+            return null;
+        }
+    }
 
 
   return (
@@ -56,7 +82,7 @@ export default LoginScreen = () => {
         </View>
 
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => promptAsync()}>
         <FontAwesomeIcon icon={ faSpotify } size={50} color='#fff' />
             <Text style={styles.buttonText}>Login With Spotify</Text>
         </TouchableOpacity>
