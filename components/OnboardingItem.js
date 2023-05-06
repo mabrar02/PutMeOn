@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
         width: "85%",
         height: 400,
         resizeMode: 'contain',
-        marginTop: 250,
+        marginTop: 200,
     },
 
     title: {
@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     header: {
         flex: 0.3,
         width: "70%",
-        marginTop: 30,
         marginHorizontal: 28,
         position: "absolute",
     }
