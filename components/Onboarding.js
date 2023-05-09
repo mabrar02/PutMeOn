@@ -6,7 +6,7 @@ import Paginator from './Paginator';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faArrowLeft} from '@fortawesome/free-solid-svg-icons/faArrowLeft'
 
-export default Onboarding = () => {
+export default Onboarding = ({navigation}) => {
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -36,16 +36,16 @@ export default Onboarding = () => {
   }
 
   const swapToLogin = () => {
-    console.log("NEXT SCREEN");
+    navigation.navigate("LoginScreen");
   }
 
   const viewConfig = useRef({viewAreaCoveragePercentThreshold: 50}).current;
 
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{flex:1, backgroundColor: "#EBFFE9"}}>
       <View style={styles.topBar}>
-        <TouchableOpacity style={currentIndex == 0 ? styles.hidden : null} onPress={handleBack}>
+        <TouchableOpacity style={[currentIndex == 0 ? styles.hidden : null, {height: 35, width: 35}]} onPress={handleBack}>
           <FontAwesomeIcon icon={ faArrowLeft } size={22} color='#A4A4A4' />
 
         </TouchableOpacity>

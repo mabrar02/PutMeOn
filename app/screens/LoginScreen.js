@@ -8,7 +8,7 @@ import {CLIENT_ID, CLIENT_SECRET} from '../../components/hidden/clientSecret';
 import * as SecureStore from 'expo-secure-store';
 
 
-export default LoginScreen = () => {
+export default LoginScreen = ({navigation}) => {
 
 
     const discovery = {
@@ -47,6 +47,7 @@ export default LoginScreen = () => {
     const storeAccessToken = async(accessToken) => {
         await SecureStore.setItemAsync("access_token", accessToken);
         console.log("stored token", accessToken);
+        navigation.navigate("HomeScreen");
     }
 
     const getAccessToken = async () => {
@@ -66,7 +67,7 @@ export default LoginScreen = () => {
 
 
   return (
-    <View>
+    <View style={{flex:1}}>
       <SafeAreaView style={styles.header}>
         <View style={styles.headerText}>
             <Text style={styles.putMeText}>PutMe</Text>
