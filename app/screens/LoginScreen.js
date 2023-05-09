@@ -36,6 +36,7 @@ export default LoginScreen = ({navigation}) => {
     }, discovery);
 
     useEffect(() => {
+
         if(response?.type === "success"){
             const access_token = Object.values(response.params)[0];
             console.log('accessToken', access_token);
@@ -46,8 +47,13 @@ export default LoginScreen = ({navigation}) => {
 
     const storeAccessToken = async(accessToken) => {
         await SecureStore.setItemAsync("access_token", accessToken);
-        console.log("stored token", accessToken);
+        console.log("stored token");
         navigation.navigate("HomeScreen");
+    }
+
+    const removeAccessToken = async() => {
+        await SecureStore.deleteItemAsync("access_token");
+        console.log("removed");
     }
 
     const getAccessToken = async () => {

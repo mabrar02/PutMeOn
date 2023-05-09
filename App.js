@@ -6,9 +6,10 @@ import LoginScreen from './app/screens/LoginScreen';
 import HomeScreen from './app/screens/HomeScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useState } from 'react';
 
 export default function App() {
-
 
   const [fontsLoaded] = useFonts({
     'Rubik-Regular': require('./app/assets/fonts/Rubik-Regular.ttf'),
@@ -16,22 +17,49 @@ export default function App() {
     'Rubik-Medium': require('./app/assets/fonts/Rubik-Medium.ttf'),
   });
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const getAccessToken = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("access_token");
+        if (token) {
+          setIsLoggedIn(true);
+        } else {
+          console.log('no token found');
+          setIsLoggedIn(false);
+        }
+      } catch (e) {
+        console.log('failed to get token');
+        setIsLoggedIn(false);
+      }
+    }
+    getAccessToken();
+  }, []);
+
   if (!fontsLoaded) {
     return null;
   }
-
 
   const Stack = createNativeStackNavigator();
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
-        <Stack.Screen name="Onboarding" component={Onboarding} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        {!isLoggedIn && (
+          <>
+            <Stack.Screen name="Onboarding" component={Onboarding} />
+            <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          </>
+        )}
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        {isLoggedIn && (
+          <Stack.Screen name="Onboarding" component={Onboarding} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
+  
 }
 
 const styles = StyleSheet.create({
@@ -44,4 +72,3 @@ const styles = StyleSheet.create({
 
   },
 });
-
