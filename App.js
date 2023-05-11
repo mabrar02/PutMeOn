@@ -8,6 +8,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
+import BottomTabNavigator from './components/BottomTabNavigator';
 
 export default function App() {
 
@@ -45,17 +46,10 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        {!isLoggedIn && (
-          <>
-            <Stack.Screen name="Onboarding" component={Onboarding} />
-            <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          </>
-        )}
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        {isLoggedIn && (
-          <Stack.Screen name="Onboarding" component={Onboarding} />
-        )}
+      <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={!isLoggedIn ? 'Onboarding' : null}>
+        <Stack.Screen name="HomePage" component={BottomTabNavigator} />
+        <Stack.Screen name="Onboarding" component={Onboarding} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

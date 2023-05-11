@@ -1,75 +1,148 @@
-
 import { SafeAreaView, StyleSheet, Text, View, Dimensions, TouchableOpacity } from 'react-native'
-import {React, useEffect, useState} from 'react'
+import React, { useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
-import { faSpotify} from '@fortawesome/free-brands-svg-icons/faSpotify'
-import {ResponseType, useAuthRequest} from 'expo-auth-session';
-import {CLIENT_ID, CLIENT_SECRET} from '../../components/hidden/clientSecret';
+import { faSpotify } from '@fortawesome/free-brands-svg-icons/faSpotify'
+import { ResponseType, useAuthRequest } from 'expo-auth-session';
+import { CLIENT_ID, CLIENT_SECRET } from '../../components/hidden/clientSecret';
 import * as SecureStore from 'expo-secure-store';
 
+export default LoginScreen = ({ navigation }) => {
+  const discovery = {
+    authorizationEndpoint: "https://accounts.spotify.com/authorize",
+    tokenEndpoint: "https://accounts.spotify.com/api/token",
+  };
 
-export default LoginScreen = ({navigation}) => {
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      responseType: ResponseType.Code,
+      clientId: CLIENT_ID,
+      scopes: [
+        "user-read-currently-playing",
+        "user-read-recently-played",
+        "user-read-playback-state",
+        "user-top-read",
+        "user-modify-playback-state",
+        "streaming",
+        "user-read-email",
+        "user-read-private",
+      ],
+      usePKCE: false,
+      redirectUri: "exp://192.168.2.21:19000",
+    },
+    discovery
+  );
 
+  useEffect(() => {
+    if (response?.type === "success") {
+      const code = response.params?.code;
+      if (code) {
+        exchangeAuthorizationCode(code);
+      } else {
+        console.log("Authorization code missing");
+      }
+    }
+  }, [response]);
 
-    const discovery = {
-        authorizationEndpoint: "https://accounts.spotify.com/authorize",
-        tokenEndpoint: "https://accounts.spotify.com/api/token",
-    };
+  const exchangeAuthorizationCode = async (code) => {
+    try {
+      const tokenEndpoint = discovery.tokenEndpoint;
+      const body = {
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: "exp://192.168.2.21:19000",
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET, // Provide your client secret here
+      };
 
-    const [request, response, promptAsync] = useAuthRequest({
-        ResponseType: ResponseType.Token,
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        scopes: [
-            "user-read-currently-playing",
-            "user-read-recently-played",
-            "user-read-playback-state",
-            "user-top-read",
-            "user-modify-playback-state",
-            "streaming",
-            "user-read-email",
-            "user-read-private",
-        ],
-        usePKCE: false,
-        redirectUri: "exp://192.168.2.21:19000",
+      const response = await fetch(tokenEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: Object.entries(body)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join("&"),
+      });
 
-    }, discovery);
+      const data = await response.json();
+      if (data.access_token) {
+        const accessToken = data.access_token;
+        console.log("accessToken", accessToken);
+        storeAccessToken(accessToken);
+        getCurrentUser(accessToken);
+      } else {
+        console.error("Error exchanging authorization code for access token:", data);
+      }
+    } catch (error) {
+      console.error("Error exchanging authorization code for access token:", error);
+    }
+  };
 
-    useEffect(() => {
+  const getCurrentUser = async (access_token) => {
+    if (!access_token) {
+      console.log("Access token missing")
+      return;
+    }
 
-        if(response?.type === "success"){
-            const access_token = Object.values(response.params)[0];
-            console.log('accessToken', access_token);
-            storeAccessToken(access_token);
+    fetch("https://api.spotify.com/v1/me", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          refreshToken();
+        } else {
+          return res.json();
         }
+      })
+      .then((response) => {
+        const userString = JSON.stringify(response);
+        storeUserData(response);
+      })
+      .catch((error) => {
+        console.error("Error retrieving current user:", error);
+      });
+  };
 
-    }, [response]);
 
-    const storeAccessToken = async(accessToken) => {
-        await SecureStore.setItemAsync("access_token", accessToken);
-        console.log("stored token");
-        navigation.navigate("HomeScreen");
+  const storeUserData = async (userData) => {
+    await SecureStore.setItemAsync("user_id", userData.id);
+    await SecureStore.setItemAsync("user_display_name", userData.display_name);
+    await SecureStore.setItemAsync("user_email", userData.email);
+    await SecureStore.setItemAsync("user_pfp_url", userData.images[0].url);
+
+
+    console.log(userData.id + " " + userData.email + " " + userData.display_name + " " + userData.images[0].url);
+    navigation.navigate("HomePage");
+  }
+
+  const storeAccessToken = async (accessToken) => {
+    await SecureStore.setItemAsync("access_token", accessToken);
+    console.log("stored token");
+  }
+
+  const removeAccessToken = async () => {
+    await SecureStore.deleteItemAsync("access_token");
+    console.log("removed");
+  }
+
+  const getAccessToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("access_token");
+      if (token) {
+        return token;
+      } else {
+        console.log('no token found');
+        return null;
+      }
+    } catch (e) {
+      console.log('failed to get token');
+      return null;
     }
-
-    const removeAccessToken = async() => {
-        await SecureStore.deleteItemAsync("access_token");
-        console.log("removed");
-    }
-
-    const getAccessToken = async () => {
-        try{
-            const token = await SecureStore.getItemAsync("access_token");
-            if(token) {
-                return token;
-            } else{
-                console.log('no token found');
-                return null;
-            }
-        } catch (e){
-            console.log('failed to get token');
-            return null;
-        }
-    }
+  }
 
 
   return (

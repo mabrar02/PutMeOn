@@ -11,7 +11,7 @@ export default HomeScreen = ({navigation}) => {
   }
 
   return (
-    <SafeAreaView style={{flex:1, alignItems:'center', alignContent:"center", justifyContent:"center"}}>
+    <SafeAreaView style={{flex:1, alignItems:'center', alignContent:"center", justifyContent:"center", backgroundColor: "#EBFFE9"}}>
       <TouchableOpacity style={{width:100, height:100, backgroundColor:"blue"}} onPress={removeAccessToken}>
         <Text>LOGOUT</Text>
       </TouchableOpacity>
