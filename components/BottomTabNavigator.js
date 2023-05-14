@@ -1,6 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import React from "react";
+import { useIsFocused } from '@react-navigation/native';
+import React, {useEffect} from "react";
 import {StyleSheet, Text, View, Image, TouchableOpacity, Animated} from "react-native";
+import * as SecureStore from 'expo-secure-store';
+import { CLIENT_ID, CLIENT_SECRET } from '../components/hidden/clientSecret';
 import HomeScreen from '../app/screens/HomeScreen';
 import SavedMusicScreen from "../app/screens/SavedMusicScreen";
 import FriendsScreen from '../app/screens/FriendsScreen';
@@ -16,6 +19,78 @@ import {faGear} from '@fortawesome/free-solid-svg-icons/faGear'
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
+
+  const storeTokenInfo = async (tokenJson) => {
+    await SecureStore.setItemAsync("access_token", tokenJson.access_token);
+    await SecureStore.setItemAsync("refresh_token", tokenJson.refresh_token);
+    const tokenExpireTime = new Date().getTime + tokenJson.expires_in * 1000;
+    await SecureStore.setItemAsync("token_expire", tokenExpireTime);
+  };
+
+  const storeUserInfo = async (userData) => {
+    await SecureStore.setItemAsync("user_id", userData.id);
+    await SecureStore.setItemAsync("user_display_name", userData.display_name);
+    await SecureStore.setItemAsync("user_email", userData.email);
+    await SecureStore.setItemAsync("user_pfp_url", userData.images[0].url);
+  }
+
+  const getUserInfo = async () => {
+    const expirationDate = await SecureStore.getItemAsync("token_expire");
+    if(!expirationDate || new Date().getTime() > expirationDate) {
+      await refreshTokens();
+    }
+
+    const token = await SecureStore.getItemAsync("access_token");
+
+    const profile = await fetch("https://api.spotify.com/v1/me", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const profileJson = await profile.json();
+    storeUserInfo(profileJson);
+  };
+
+  const checkUserInfo = async () => {
+    const expirationDate = await SecureStore.getItemAsync("token_expire");
+    const userInfo = await SecureStore.getItemAsync("user_id");
+    if(expirationDate < new Date().getTime() && userInfo){
+      console.log("fresh user");
+    }
+    else{
+      getUserInfo();
+    }
+  }
+
+  const refreshTokens = async () => {
+    const credentials = `${CLIENT_ID}:${CLIENT_SECRET}`;
+    const encodedCredentials = Buffer.from(credentials).toString("base64");
+
+    const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${encodedCredentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `grant_type=refresh_token&refresh_token=${SecureStore.getItemAsync("refresh_token")}`,
+    });
+
+    const refreshJson = refreshResponse.json();
+    storeTokenInfo(refreshJson);
+    return refreshJson;
+  };
+
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      checkUserInfo();
+    }
+  }, [isFocused]);
+
   return (
     <Tab.Navigator screenOptions={{
         headerShown: false,

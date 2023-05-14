@@ -19,28 +19,39 @@ export default function App() {
   });
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCheckingToken, setIsCheckingToken] = useState(true);
 
   useEffect(() => {
-    const getAccessToken = async () => {
+    const checkToken = async () => {
       try {
         const token = await SecureStore.getItemAsync("access_token");
         if (token) {
           setIsLoggedIn(true);
         } else {
-          console.log('no token found');
+          console.log('No token found');
           setIsLoggedIn(false);
         }
+
       } catch (e) {
-        console.log('failed to get token');
+        console.log('Failed to get token:', e);
         setIsLoggedIn(false);
+      } finally {
+        setIsCheckingToken(false);
       }
-    }
-    getAccessToken();
+    };
+
+    checkToken();
   }, []);
 
-  if (!fontsLoaded) {
-    return null;
+
+  if (isCheckingToken || !fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
+
 
   const Stack = createNativeStackNavigator();
 
@@ -63,6 +74,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
+  },
 
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
