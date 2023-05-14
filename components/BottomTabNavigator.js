@@ -36,8 +36,11 @@ export default function BottomTabNavigator() {
 
   const getUserInfo = async () => {
     const expirationDate = await SecureStore.getItemAsync("token_expire");
-    if(!expirationDate || new Date().getTime() > expirationDate) {
-      await refreshTokens();
+    if(!expirationDate) {
+      const expirationNumber = parseInt(expirationDate, 10);
+      if(new Date().getTime() > expirationNumber){
+        await refreshTokens();
+      }
     }
 
     const token = await SecureStore.getItemAsync("access_token");
@@ -55,9 +58,11 @@ export default function BottomTabNavigator() {
   };
 
   const checkUserInfo = async () => {
+    console.log("testing");
     const expirationDate = await SecureStore.getItemAsync("token_expire");
+    const expirationNumber = parseInt(expirationDate, 10);
     const userInfo = await SecureStore.getItemAsync("user_id");
-    if(expirationDate < new Date().getTime() && userInfo){
+    if(expirationNumber < new Date().getTime() && userInfo){
       console.log("fresh user");
     }
     else{
@@ -83,13 +88,9 @@ export default function BottomTabNavigator() {
     return refreshJson;
   };
 
-  const isFocused = useIsFocused();
-
   useEffect(() => {
-    if (isFocused) {
-      checkUserInfo();
-    }
-  }, [isFocused]);
+    checkUserInfo();
+  }, []);
 
   return (
     <Tab.Navigator screenOptions={{
