@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { revokeAsync } from "expo-auth-session";
 import * as SecureStore from 'expo-secure-store';
+import { CommonActions } from '@react-navigation/native';
 
 
 const SettingsScreen = ({navigation}) => {
@@ -57,7 +58,10 @@ const SettingsScreen = ({navigation}) => {
       token: accessTok,
     }, discovery);
     clearData();
-    navigation.navigate("Onboarding");
+    navigation.dispatch(CommonActions.reset({
+      index: 0,
+      routes: [{ name: 'Onboarding' }],
+    }));
   }
 
   return (

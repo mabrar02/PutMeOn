@@ -15,16 +15,16 @@ import {faMusic} from '@fortawesome/free-solid-svg-icons/faMusic'
 import {faSquarePlus} from '@fortawesome/free-solid-svg-icons/faSquarePlus'
 import {faUserGroup} from '@fortawesome/free-solid-svg-icons/faUserGroup'
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear'
+import {Buffer} from "buffer";
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
 
-  const storeTokenInfo = async (tokenJson) => {
+  const updateAccessToken = async (tokenJson) => {
     await SecureStore.setItemAsync("access_token", tokenJson.access_token);
-    await SecureStore.setItemAsync("refresh_token", tokenJson.refresh_token);
-    const tokenExpireTime = new Date().getTime + tokenJson.expires_in * 1000;
-    await SecureStore.setItemAsync("token_expire", tokenExpireTime);
+    const tokenExpireTime = new Date().getTime() + tokenJson.expires_in * 1000;
+    await SecureStore.setItemAsync("token_expire", String(tokenExpireTime));
   };
 
   const storeUserInfo = async (userData) => {
@@ -35,13 +35,6 @@ export default function BottomTabNavigator() {
   }
 
   const getUserInfo = async () => {
-    const expirationDate = await SecureStore.getItemAsync("token_expire");
-    if(!expirationDate) {
-      const expirationNumber = parseInt(expirationDate, 10);
-      if(new Date().getTime() > expirationNumber){
-        await refreshTokens();
-      }
-    }
 
     const token = await SecureStore.getItemAsync("access_token");
 
@@ -58,21 +51,27 @@ export default function BottomTabNavigator() {
   };
 
   const checkUserInfo = async () => {
-    console.log("testing");
+    const profileId = await SecureStore.getItemAsync("user_id");
     const expirationDate = await SecureStore.getItemAsync("token_expire");
     const expirationNumber = parseInt(expirationDate, 10);
-    const userInfo = await SecureStore.getItemAsync("user_id");
-    if(expirationNumber < new Date().getTime() && userInfo){
+
+    if(!profileId){
+      console.log("first time user");
+      getUserInfo();
+    }
+    else if(expirationNumber > new Date().getTime()){
       console.log("fresh user");
     }
     else{
-      getUserInfo();
+      console.log("refreshing token");
+      await refreshTokens();
     }
   }
 
   const refreshTokens = async () => {
     const credentials = `${CLIENT_ID}:${CLIENT_SECRET}`;
     const encodedCredentials = Buffer.from(credentials).toString("base64");
+    const refreshToken = await SecureStore.getItemAsync("refresh_token");
 
     const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -80,11 +79,12 @@ export default function BottomTabNavigator() {
         'Authorization': `Basic ${encodedCredentials}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `grant_type=refresh_token&refresh_token=${SecureStore.getItemAsync("refresh_token")}`,
+      body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
     });
 
-    const refreshJson = refreshResponse.json();
-    storeTokenInfo(refreshJson);
+    const refreshJson = await refreshResponse.json();
+    updateAccessToken(refreshJson);
+    getUserInfo();
     return refreshJson;
   };
 
