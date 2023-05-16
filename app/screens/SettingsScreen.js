@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View, Dimensions, Image } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View, Dimensions, Image, Alert } from 'react-native'
 import React, {useState, useEffect} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { revokeAsync } from "expo-auth-session";
@@ -49,6 +49,18 @@ const SettingsScreen = ({navigation}) => {
     await SecureStore.deleteItemAsync("user_display_name");
   }
 
+
+  const confirmLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Logout', style: 'destructive', onPress: logout}
+      ],
+      {cancelable: true}
+    )
+  }
   const logout = async () => {
     const accessTok = await SecureStore.getItemAsync("access_token");
     const discovery = {
@@ -70,10 +82,10 @@ const SettingsScreen = ({navigation}) => {
         <Image style={styles.profilePic} source={{ uri: pfpUrl }} />
         <View style={{ marginVertical: 20 }}>
           <Text style={styles.displayName}>{displayName}</Text>
-          <Text>{email}</Text>
+          <Text style={styles.userName}>{email}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.buttonStyle} onPress={() => logout()}>
+      <TouchableOpacity style={styles.buttonStyle} onPress={() => confirmLogout()}>
         <Text style={styles.buttonText}>LOGOUT</Text> 
       </TouchableOpacity>
     </SafeAreaView>
@@ -96,24 +108,29 @@ const styles = StyleSheet.create({
         backgroundColor: "#F06363",
         alignItems: "center",
         justifyContent: "center",
+        marginTop: 50,
     },
 
     profilePic: {
-        resizeMode: "contain",
         height: 200,
         width: 200,
         borderRadius: 100,
-        borderWidth: 3
+        borderWidth: 2,
+        alignSelf: "center"
     },
 
     displayName: {
         fontFamily: "Rubik-SemiBold",
         color: "#3E6F38",
         fontSize: 32,
+        alignSelf: "center",
+        marginBottom: 5,
 
     },
 
     userName: {
+      fontFamily: "Rubik-Regular",
+      color: "#6C9967",
 
     },
 
