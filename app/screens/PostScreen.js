@@ -1,12 +1,45 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList } from 'react-native';
+import React, {useState} from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
+import * as SecureStore from 'expo-secure-store';
+
 
 const PostScreen = () => {
+
+  const [searchText, setSearchText] = useState("");
+  const [trackData, setTrackData] = useState([]);
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
+
+  const search = async () => {
+    const token = await SecureStore.getItemAsync("access_token");
+  
+    const searchResults = await fetch(
+      "https://api.spotify.com/v1/search?q=" + searchText + "&type=track&limit=20",
+      {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then(response => response.json())
+      .then(data => {
+        if (data.tracks?.items?.length > 0) {
+          const tracks = data.tracks.items;
+          setTrackData(tracks);
+        } else {
+          setTrackData([]);
+        }
+      })
+      .catch(error => {
+        console.error("Error occurred while fetching search results:", error);
+      });
+  };
+  
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
@@ -18,10 +51,17 @@ const PostScreen = () => {
           </View>
           <View style={styles.searchBar}>
             <FontAwesomeIcon icon={faMagnifyingGlass} size={20} color='#fff' />
-            <TextInput style={styles.searchInput} inputMode='search' maxLength={22} placeholder='Put your friends on to a song!' placeholderTextColor="#a7a7a7" />
+            <TextInput style={styles.searchInput} onChangeText={(text) => setSearchText(text)} inputMode='search' maxLength={22} placeholder='Put your friends on to a song!' placeholderTextColor="#a7a7a7" onSubmitEditing={() => search()}/>
           </View>
         </SafeAreaView>
         <View style={styles.body}>
+          <FlatList
+            data={trackData}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <Text>{item.name} {item.artists[0].name}</Text>
+            )}
+          />
         </View>
       </View>
     </TouchableWithoutFeedback>
