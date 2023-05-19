@@ -3,15 +3,13 @@ import React, {useState} from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
 import * as SecureStore from 'expo-secure-store';
+import TrackItem from '../../components/TrackItem';
 
 
 const PostScreen = () => {
 
   const [searchText, setSearchText] = useState("");
   const [trackData, setTrackData] = useState([]);
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-  };
 
   const search = async () => {
     const token = await SecureStore.getItemAsync("access_token");
@@ -42,7 +40,7 @@ const PostScreen = () => {
   
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+
       <View style={{ flex: 1 }}>
         <SafeAreaView style={styles.header}>
           <View style={styles.headerText}>
@@ -57,14 +55,12 @@ const PostScreen = () => {
         <View style={styles.body}>
           <FlatList
             data={trackData}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <Text>{item.name} {item.artists[0].name}</Text>
-            )}
+            keyExtractor={(item, index) => index.toString()} 
+            renderItem={({ item }) => <TrackItem item={item}/>}
           />
         </View>
       </View>
-    </TouchableWithoutFeedback>
+
   );
 };
 
@@ -73,7 +69,7 @@ export default PostScreen;
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "#3E6F38",
-    flex: 0.25,
+    flex: 1,
     alignItems: "center",
   },
 
@@ -102,7 +98,7 @@ const styles = StyleSheet.create({
 
   body: {
     backgroundColor: "#EBFFE9",
-    flex: 0.75,
+    flex: 3,
     alignItems: "center",
   },
 
