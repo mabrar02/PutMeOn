@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image, Dimensions } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
@@ -10,8 +10,11 @@ const PostScreen = () => {
   const [searchText, setSearchText] = useState("");
   const [trackData, setTrackData] = useState([]);
   const [showClearButton, setShowClearButton] = useState(false);
-  const [showBlankPrompt, setShowBlankPrompt] =useState(true);
+  const [showBlankPrompt, setShowBlankPrompt] = useState(true);
+  const [showUnknownPrompt, setShowUnknownPrompt] = useState(false);
+
   const searchImage = require("../assets/images/search.png");
+  const unknownSongImage = require("../assets/images/unknown.png");
 
   const search = async () => {
     const token = await SecureStore.getItemAsync("access_token");
@@ -33,7 +36,14 @@ const PostScreen = () => {
           setTrackData(tracks);
         } else {
           setTrackData([]);
-          setShowBlankPrompt(true);
+          if(searchText.length > 0){
+            setShowUnknownPrompt(true);
+            console.log("could not find");
+          }
+          else{
+            setShowBlankPrompt(true);
+          }
+          
         }
       })
       .catch(error => {
@@ -47,7 +57,16 @@ const PostScreen = () => {
     setTrackData([]);
     setShowClearButton(false);
     setShowBlankPrompt(true);
+    setShowUnknownPrompt(false);
   };
+
+  const touchElsewhere = async () => {
+    Keyboard.dismiss();
+    if(searchText.length > 0){
+      await search();
+    }
+    setShowClearButton(false);
+  }
 
   const handleBlur = () => {
     setShowClearButton(false);
@@ -77,6 +96,7 @@ const PostScreen = () => {
             onFocus={() => {
               setShowClearButton(searchText.length > 0)
               setShowBlankPrompt(false);
+              setShowUnknownPrompt(false);
             }}
             onBlur={() => handleBlur()}
           />
@@ -94,10 +114,24 @@ const PostScreen = () => {
             <Text style={styles.caption}>Search for your favourite songs!</Text>
           </View>
         )}
+        {!showBlankPrompt && !showUnknownPrompt && trackData.length < 1 && (          
+        
+          <TouchableWithoutFeedback style={{}} onPress={() => touchElsewhere()}>
+            <View style={{width: "100%", height: "100%"}}/>
+          </TouchableWithoutFeedback>
+        )}
+
+        {showUnknownPrompt && (
+          <View style={styles.blankSearchContainer}>
+            <Image source={unknownSongImage} style={styles.searchImage}/>
+            <Text style={styles.caption}>Sorry, we couldn't find that song...</Text>
+          </View>
+        )}
         <FlatList
           data={trackData}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => <TrackItem item={item} />}
+          contentContainerStyle={styles.flatListContainer}
         />
       </View>
     </View>
@@ -178,6 +212,10 @@ const styles = StyleSheet.create({
     color: "#3E6F38",
     fontSize: 20,
   },
+
+  flatListContainer : {
+    paddingBottom: 120,
+  }
 
 
 });
