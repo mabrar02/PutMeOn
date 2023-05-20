@@ -1,19 +1,21 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList } from 'react-native';
-import React, {useState} from 'react';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image } from 'react-native';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
+import { faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
+import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 import * as SecureStore from 'expo-secure-store';
 import TrackItem from '../../components/TrackItem';
 
-
 const PostScreen = () => {
-
   const [searchText, setSearchText] = useState("");
   const [trackData, setTrackData] = useState([]);
+  const [showClearButton, setShowClearButton] = useState(false);
+  const [showBlankPrompt, setShowBlankPrompt] =useState(true);
+  const searchImage = require("../assets/images/search.png");
 
   const search = async () => {
     const token = await SecureStore.getItemAsync("access_token");
-  
+
     const searchResults = await fetch(
       "https://api.spotify.com/v1/search?q=" + searchText + "&type=track&limit=20",
       {
@@ -31,36 +33,74 @@ const PostScreen = () => {
           setTrackData(tracks);
         } else {
           setTrackData([]);
+          setShowBlankPrompt(true);
         }
       })
       .catch(error => {
         console.error("Error occurred while fetching search results:", error);
       });
   };
-  
+
+  const clearSearchText = () => {
+    Keyboard.dismiss();
+    setSearchText("");
+    setTrackData([]);
+    setShowClearButton(false);
+    setShowBlankPrompt(true);
+  };
+
+  const handleBlur = () => {
+    setShowClearButton(false);
+  };
 
   return (
-
-      <View style={{ flex: 1 }}>
-        <SafeAreaView style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.putMeText}>PutMe</Text>
-            <Text style={styles.onText}>ON!</Text>
-          </View>
-          <View style={styles.searchBar}>
-            <FontAwesomeIcon icon={faMagnifyingGlass} size={20} color='#fff' />
-            <TextInput style={styles.searchInput} onChangeText={(text) => setSearchText(text)} inputMode='search' maxLength={22} placeholder='Put your friends on to a song!' placeholderTextColor="#a7a7a7" onSubmitEditing={() => search()}/>
-          </View>
-        </SafeAreaView>
-        <View style={styles.body}>
-          <FlatList
-            data={trackData}
-            keyExtractor={(item, index) => index.toString()} 
-            renderItem={({ item }) => <TrackItem item={item}/>}
-          />
+    <View style={{ flex: 1 }}>
+      <SafeAreaView style={styles.header}>
+        <View style={styles.headerText}>
+          <Text style={styles.putMeText}>PutMe</Text>
+          <Text style={styles.onText}>ON!</Text>
         </View>
+        <View style={styles.searchBar}>
+          <FontAwesomeIcon icon={faMagnifyingGlass} size={20} color='#fff' />
+          <TextInput
+            style={styles.searchInput}
+            onChangeText={(text) => {
+              setSearchText(text);
+              setShowClearButton(text.length > 0);
+            }}
+            value={searchText}
+            inputMode='search'
+            maxLength={22}
+            placeholder='Put your friends on to a song!'
+            placeholderTextColor="#a7a7a7"
+            onSubmitEditing={search}
+            onFocus={() => {
+              setShowClearButton(searchText.length > 0)
+              setShowBlankPrompt(false);
+            }}
+            onBlur={() => handleBlur()}
+          />
+          {showClearButton && (
+            <TouchableOpacity style = {{width:20, height: 20,}} onPress={clearSearchText}>
+              <FontAwesomeIcon icon={faTimes} size={20} color='#fff' />
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+      <View style={styles.body}>
+        {showBlankPrompt && (
+          <View style={styles.blankSearchContainer}>
+            <Image source={searchImage} style={styles.searchImage}/>
+            <Text style={styles.caption}>Search for your favourite songs!</Text>
+          </View>
+        )}
+        <FlatList
+          data={trackData}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => <TrackItem item={item} />}
+        />
       </View>
-
+    </View>
   );
 };
 
@@ -109,6 +149,7 @@ const styles = StyleSheet.create({
     width: "80%",
     borderRadius: 10,
     flexDirection: "row",
+    borderWidth: 2,
   },
 
   searchInput: {
@@ -116,5 +157,27 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     fontFamily: "Rubik-Regular",
+    flex: 1,
   },
+
+  searchImage: {
+    resizeMode: "contain",
+    width: 250,
+    height: 250,
+    marginTop: 40,
+    marginBottom: 20,
+  },
+
+  blankSearchContainer: {
+    alignContent: "center",
+    alignItems: "center",
+  },
+
+  caption: {
+    fontFamily: "Rubik-SemiBold",
+    color: "#3E6F38",
+    fontSize: 20,
+  },
+
+
 });
