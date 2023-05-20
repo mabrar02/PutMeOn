@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useIsFocused } from '@react-navigation/native';
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {StyleSheet, Text, View, Image, TouchableOpacity, Animated} from "react-native";
 import * as SecureStore from 'expo-secure-store';
 import { CLIENT_ID, CLIENT_SECRET } from '../components/hidden/clientSecret';
@@ -20,6 +20,9 @@ import {Buffer} from "buffer";
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
+
+  const [profileId, setProfileId] = useState("");
+  const [expirationTime, setExpirationTime] = useState(0);
 
   const updateAccessToken = async (tokenJson) => {
     await SecureStore.setItemAsync("access_token", tokenJson.access_token);
@@ -44,22 +47,22 @@ export default function BottomTabNavigator() {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-    });
+    })
+    .then(profile => profile.json())
+    .then(profileJson => storeUserInfo(profileJson));
 
-    const profileJson = await profile.json();
-    storeUserInfo(profileJson);
   };
 
   const checkUserInfo = async () => {
     const profileId = await SecureStore.getItemAsync("user_id");
     const expirationDate = await SecureStore.getItemAsync("token_expire");
-    const expirationNumber = parseInt(expirationDate, 10);
+    const expirationTime = parseInt(expirationDate, 10);
 
     if(!profileId){
       console.log("first time user");
       getUserInfo();
     }
-    else if(expirationNumber > new Date().getTime()){
+    else if(expirationTime > new Date().getTime()){
       console.log("fresh user");
     }
     else{
@@ -80,12 +83,10 @@ export default function BottomTabNavigator() {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
-    });
-
-    const refreshJson = await refreshResponse.json();
-    updateAccessToken(refreshJson);
+    })
+    .then(refreshResponse => refreshResponse.json())
+    .then(refreshJson => updateAccessToken(refreshJson));
     getUserInfo();
-    return refreshJson;
   };
 
   useEffect(() => {

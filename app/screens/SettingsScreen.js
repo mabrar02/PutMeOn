@@ -17,26 +17,17 @@ const SettingsScreen = ({navigation}) => {
   }, []);
 
   const loadUserData = async () => {
-    const name = await getDisplayName();
-    const url = await getPfpUrl();
-    const userEmail = await getUserEmail();
+    await SecureStore.getItemAsync('user_display_name')
+    .then(name => setDisplayName(name));
 
-    setDisplayName(name);
-    setPfpUrl(url);
-    setEmail(userEmail);
+    await SecureStore.getItemAsync('user_pfp_url')
+    .then(url => setPfpUrl(url));
+
+    await SecureStore.getItemAsync('user_email')
+    .then(userEmail => setEmail(userEmail));
+
   };
 
-  const getUserEmail = async () => {
-    return await SecureStore.getItemAsync('user_email');
-  };
-
-  const getPfpUrl = async () => {
-    return await SecureStore.getItemAsync('user_pfp_url');
-  };
-
-  const getDisplayName = async () => {
-    return await SecureStore.getItemAsync('user_display_name');
-  };
 
 
   const clearData = async () => {

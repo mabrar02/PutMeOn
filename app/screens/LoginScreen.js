@@ -51,11 +51,9 @@ export default LoginScreen = ({ navigation }) => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `grant_type=authorization_code&code=${aCode}&redirect_uri=exp://192.168.2.21:19000`,
-      });
-
-      const responseJson = await tokenResponse.json();
-      console.log(responseJson);
-      storeTokenInfo(responseJson);
+      })
+      .then(tokenResponse => tokenResponse.json())
+      .then(responseJson => storeTokenInfo(responseJson));
     }
   };
 
