@@ -16,6 +16,8 @@ import {faSquarePlus} from '@fortawesome/free-solid-svg-icons/faSquarePlus'
 import {faUserGroup} from '@fortawesome/free-solid-svg-icons/faUserGroup'
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear'
 import {Buffer} from "buffer";
+import { FIREBASE_DB } from '../firebaseConfig';
+import {ref, child, get, set} from 'firebase/database';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,9 +51,31 @@ export default function BottomTabNavigator() {
       },
     })
     .then(profile => profile.json())
-    .then(profileJson => storeUserInfo(profileJson));
+    .then(profileJson => 
+      {
+        setProfileId(profileJson.id);
+        storeUserInfo(profileJson);
+        checkDatabase(profileJson.id);
+        console.log(profileJson.id);
+      });
 
   };
+
+  const checkDatabase = (profileData) => {
+    const dbRef = ref(FIREBASE_DB, `users/${profileData}`);
+    get(dbRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        console.log("already exist");
+      } else {
+        console.log("creating user");
+        set(dbRef, {
+          testUser: "user100",
+          testEmail: "email100",
+        });
+      }
+    });
+  };
+  
 
   const checkUserInfo = async () => {
     const profileId = await SecureStore.getItemAsync("user_id");

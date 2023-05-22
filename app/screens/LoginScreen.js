@@ -7,6 +7,7 @@ import { ResponseType, useAuthRequest } from 'expo-auth-session';
 import { CLIENT_ID, CLIENT_SECRET } from '../../components/hidden/clientSecret';
 import * as SecureStore from 'expo-secure-store';
 
+
 export default LoginScreen = ({ navigation }) => {
   const discovery = {
     authorizationEndpoint: "https://accounts.spotify.com/authorize",

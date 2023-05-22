@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "448231239090",
+    "project_id": "putmeon-bf16d",
+    "storage_bucket": "putmeon-bf16d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448231239090:android:90a4cb493cde97b71688ab",
+        "android_client_info": {
+          "package_name": "com.addit.putmeon"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "448231239090-t46t5tpm0llcnlrlv94ou3hpeguaudpu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2lZa_UnlqhqzH6EeyJQqMHUCJYY0OdBo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "448231239090-t46t5tpm0llcnlrlv94ou3hpeguaudpu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "448231239090-54bsqjrqfam66j8eqiq2pisab0v5sce1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.addit.putmeon"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
