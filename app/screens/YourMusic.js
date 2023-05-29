@@ -3,13 +3,13 @@ import React from 'react';
 import TestMusic from '../../components/TestMusic';
 import MusicComponent from '../../components/MusicComponent';
 
-export default SavedSongs = () => {
+export default YourMusic = () => {
   return (
     <View style={styles.container}>
       <FlatList
       data={TestMusic}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({item}) => <MusicComponent item={item} savedSongs={true}/>} 
+      renderItem={({item}) => <MusicComponent item={item} savedSongs={false}/>} 
       />
     </View>
   );

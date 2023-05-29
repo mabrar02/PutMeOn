@@ -132,8 +132,10 @@ export default function BottomTabNavigator() {
             height: 90,
             ... styles.shadow
 
-        }
-    }}>
+        },
+    }}
+    
+    >
       <Tab.Screen name="Home" component={HomeScreen} options={{
         tabBarIcon: ({focused}) => (
             <View style={{alignItems: "center", justifyContent: "center",}}>
