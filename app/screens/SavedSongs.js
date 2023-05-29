@@ -6,11 +6,12 @@ import MusicComponent from '../../components/MusicComponent';
 export default SavedSongs = () => {
   return (
     <View style={styles.container}>
-      <FlatList
+      {/* <FlatList
       data={TestMusic}
       keyExtractor={(item, index) => index.toString()}
       renderItem={({item}) => <MusicComponent item={item} savedSongs={true}/>} 
-      />
+      /> */}
+      <Text style={styles.text}>Saved Songs</Text>
     </View>
   );
 };

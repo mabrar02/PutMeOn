@@ -2,7 +2,7 @@ import { Dimensions, StyleSheet, Text, View, Image } from 'react-native'
 import React from 'react'
 
 export default MusicComponent = ({item, savedSongs}) => {
-    const artistNames = item.artists;
+    const artistNames = item.artists.map(artist => artist.name).join(', ');
     const maxLength = 25;
     const maxArtistLength = 30;
     let displayedTrackTitle = item.title;

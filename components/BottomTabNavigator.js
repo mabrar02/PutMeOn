@@ -55,22 +55,21 @@ export default function BottomTabNavigator() {
       {
         setProfileId(profileJson.id);
         storeUserInfo(profileJson);
-        checkDatabase(profileJson.id);
-        console.log(profileJson.id);
+        checkDatabase(profileJson);
       });
 
   };
 
   const checkDatabase = (profileData) => {
-    const dbRef = ref(FIREBASE_DB, `users/${profileData}`);
+    const dbRef = ref(FIREBASE_DB, `users/${profileData.id}`);
     get(dbRef).then((snapshot) => {
       if (snapshot.exists()) {
         console.log("already exist");
       } else {
         console.log("creating user");
         set(dbRef, {
-          testUser: "user100",
-          testEmail: "email100",
+          displayName: profileData.display_name,
+          testEmail: profileData.email,
         });
       }
     });
