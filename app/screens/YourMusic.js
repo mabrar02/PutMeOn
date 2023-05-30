@@ -30,7 +30,8 @@ export default YourMusic = () => {
       <FlatList
       data={songs}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({item}) => <MusicComponent item={item} savedSongs={false}/>} 
+      renderItem={({item}) => <MusicComponent item={item} savedSongs={false}/>}
+      contentContainerStyle={styles.flatListContainer} 
       />
     </View>
   );
@@ -47,4 +48,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  
+  flatListContainer : {
+    paddingBottom: 120,
+  }
 });

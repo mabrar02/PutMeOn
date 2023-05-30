@@ -1,15 +1,14 @@
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Alert} from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Alert, Modal} from 'react-native'
+import React, {useState} from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import {faCircleArrowUp} from '@fortawesome/free-solid-svg-icons/faCircleArrowUp'
-import { FIREBASE_DB } from '../firebaseConfig';
-import {ref, child, get, set} from 'firebase/database';
-import * as SecureStore from 'expo-secure-store'
 
-const TrackItem = ({item}) => {
+
+const TrackItem = ({item, onConfirmPost}) => {
     const artistNames = item.artists.map(artist => artist.name).join(', ');
     const maxLength = 30;
     const maxArtistLength = 35;
+
 
     let displayedTrackTitle = item.name;
     if(displayedTrackTitle.length > maxLength){
@@ -21,33 +20,9 @@ const TrackItem = ({item}) => {
         displayedTrackArtists = displayedTrackArtists.substring(0, maxArtistLength - 3) + "..."
     }
 
-    const postSong = async () => {
-        await SecureStore.getItemAsync("user_id").
-        then(userId => postToDatabase(userId));
-    }
-
-    const postToDatabase = (profileId) => {
-        const dbRef = ref(FIREBASE_DB, `users/${profileId}/Music/YourMusic/${item.id}`);
-        set(dbRef, {
-            title: item.name,
-            artists: item.artists,
-            image: item.album.images[2],
-            likes: 0,
-        });
-    }
-
     const confirmPost = () => {
-        Alert.alert(
-          'Post',
-          'Are you sure you want to post: ' + item.name + ' by: ' + artistNames + '?',
-          [
-            {text: 'Cancel', style: 'cancel'},
-            {text: 'Post', style: 'default', onPress: postSong}
-          ],
-          {cancelable: true}
-        )
-      }
-
+        onConfirmPost(item)
+    }
 
   return (
     <View style={styles.container}>
@@ -56,10 +31,12 @@ const TrackItem = ({item}) => {
             <Text style={styles.songTitle}>{displayedTrackTitle}</Text>
             <Text style={styles.songArtists}>{displayedTrackArtists}</Text>
         </View>
-        <TouchableOpacity style={styles.postButton} onPress={() => confirmPost()}>
+        <TouchableOpacity style={styles.postButton} onPress={confirmPost}>
             <FontAwesomeIcon icon={faCircleArrowUp} size={40} color='#fff'/>
         </TouchableOpacity>
+
     </View>
+
   )
 }
 
