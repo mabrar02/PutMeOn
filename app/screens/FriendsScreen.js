@@ -13,7 +13,7 @@ import FriendsList from './FriendsList';
 const Tab = createBottomTabNavigator();
 const Tab2 = createMaterialTopTabNavigator();
 
-export default FriendsScreen = () => {
+export default FriendsScreen = ({navigation}) => {
   return (
 <View style={{ flex: 1 }}>
   <SafeAreaView style={styles.header}>
@@ -25,7 +25,7 @@ export default FriendsScreen = () => {
 
   <View style={{ flex: 0.82, backgroundColor: "#EBFFE9"}}>
     <View style={{alignItems: "center"}}>
-      <TouchableOpacity style={styles.addFriendButton}>
+      <TouchableOpacity style={styles.addFriendButton} onPress={() => navigation.navigate("AddFriend")}>
         <Text style={styles.addFriendText}>Add Friend</Text>
         <FontAwesomeIcon icon={faUserPlus} size={20} color='#707070'/>
       </TouchableOpacity>

@@ -18,6 +18,7 @@ import {faGear} from '@fortawesome/free-solid-svg-icons/faGear'
 import {Buffer} from "buffer";
 import { FIREBASE_DB } from '../firebaseConfig';
 import {ref, child, get, set} from 'firebase/database';
+import FriendsModule from '../app/screens/FriendsModule';
 
 const Tab = createBottomTabNavigator();
 
@@ -159,7 +160,7 @@ export default function BottomTabNavigator() {
             </View>
         ),
       }} />
-      <Tab.Screen name="FriendsScreen" component={FriendsScreen}  options={{
+      <Tab.Screen name="FriendsModule" component={FriendsModule}  options={{
         tabBarIcon: ({focused}) => (
             <View style={{alignItems: "center", justifyContent: "center"}}>
                 <FontAwesomeIcon icon={ faUserGroup } size={30} color={focused ? "#3E6F38" : "#515151"} />
