@@ -8,15 +8,14 @@ import TestFriends from '../../components/TestFriends';
 export default FriendsList = () => {
   return (
     <View style={styles.body}>
-    <TouchableOpacity style={styles.addFriendButton}>
-      <Text style={styles.addFriendText}>Add Friend</Text>
-      <FontAwesomeIcon icon={faUserPlus} size={20} color='#707070'/>
-    </TouchableOpacity>
+
 
     <FlatList
     data={TestFriends}
+    showsVerticalScrollIndicator={false}
     keyExtractor={(item, index) => index.toString()}
     renderItem={({item}) => <FriendComponent item={item} adding={false} requesting={false}/>}
+    contentContainerStyle={styles.flatListContainer} 
     />
 
   </View>
@@ -41,9 +40,13 @@ const styles = StyleSheet.create({
 
   body: {
     backgroundColor: "#EBFFE9",
-    flex: 2,
+    flex: 1,
     alignItems: "center",
     },
+
+    flatListContainer : {
+      paddingBottom: 175,
+    }
   
   
   })

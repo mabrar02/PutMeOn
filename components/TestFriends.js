@@ -23,4 +23,12 @@ export default [
 
     },
 
+    {
+        id: '4',
+        displayName: 'Test4',
+        email: 'test4@hotmail.com',
+        image: require('../app/assets/images/testpfp.jpg'),
+
+    },
+
 ]

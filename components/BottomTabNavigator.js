@@ -159,7 +159,7 @@ export default function BottomTabNavigator() {
             </View>
         ),
       }} />
-      <Tab.Screen name="Friends" component={FriendsScreen}  options={{
+      <Tab.Screen name="FriendsScreen" component={FriendsScreen}  options={{
         tabBarIcon: ({focused}) => (
             <View style={{alignItems: "center", justifyContent: "center"}}>
                 <FontAwesomeIcon icon={ faUserGroup } size={30} color={focused ? "#3E6F38" : "#515151"} />
