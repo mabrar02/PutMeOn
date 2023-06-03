@@ -2,32 +2,32 @@ export default [
     {
         id: '1',
         displayName: 'Test1',
-        email: 'test1@gmail.com',
-        image: require('../app/assets/images/testpfp.jpg'),
+        username: 'test1@gmail.com',
+        image: "none",
 
     },
 
     {
         id: '2',
         displayName: 'Test2',
-        email: 'test2@hotmal.com',
-        image: require('../app/assets/images/testpfp.jpg'),
+        username: 'test2@hotmal.com',
+        image: "none",
 
     },
 
     {
         id: '3',
         displayName: 'Test3',
-        email: 'test3@outlook.com',
-        image: require('../app/assets/images/testpfp.jpg'),
+        username: 'test3@outlook.com',
+        image: "none",
 
     },
 
     {
         id: '4',
         displayName: 'Test4',
-        email: 'test4@hotmail.com',
-        image: require('../app/assets/images/testpfp.jpg'),
+        username: 'test4@hotmail.com',
+        image: "none",
 
     },
 

@@ -101,15 +101,15 @@ const search = async () => {
 
       </SafeAreaView>
       <View style={styles.body}>
-        {/* <FlatList
-        data={TestFriends}
+        <FlatList
+        data={searchResults}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => <FriendComponent item={item} adding={true} requesting={false}/>}
         contentContainerStyle={styles.flatListContainer} 
-        /> */}
+        />
 
-        <FlatList
+        {/* <FlatList
         data={searchResults}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => (
@@ -118,7 +118,7 @@ const search = async () => {
             <Text>{item.username}</Text>
           </View>
 
-        )}/>
+        )}/> */}
 
       </View>
     </View>

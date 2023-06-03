@@ -12,17 +12,23 @@ const FriendComponent = ({item, requesting, adding}) => {
         shownDisplayName = shownDisplayName.substring(0, maxDisplayLength-3) + "..."
     }
 
-    let shownEmail = item.email;
-    if(shownEmail.length > maxEmailLength) {
-        shownEmail = shownEmail.substring(0, maxEmailLength -3) + "..."
+    let shownUsername = item.username;
+    if(shownUsername.length > maxEmailLength) {
+        shownUsername = shownUsername.substring(0, maxEmailLength -3) + "..."
+    }
+
+    let pfpUrl = item.image;
+    if(pfpUrl == "none"){
+        pfpUrl = "https://img.freepik.com/free-icon/user_318-804790.jpg"
     }
 
   return (
     <View style={styles.container}>
-        <Image source={item.image} style={styles.friendIcon}/>
+
+        <Image source={{uri: pfpUrl}} style={styles.friendIcon}/>
         <View style={{marginHorizontal: 8, marginVertical: 15}}>
             <Text style={styles.displayName}>{shownDisplayName}</Text>
-            <Text style={styles.email}>{shownEmail}</Text>
+            <Text style={styles.email}>@{shownUsername}</Text>
         </View>
         
         <View style={styles.rightSideContainer}>
@@ -109,7 +115,6 @@ const styles = StyleSheet.create({
 
     friendIcon: {
         margin: 5,
-        resizeMode: "contain",
         height: 70,
         width: 70,
         alignSelf: "center",
