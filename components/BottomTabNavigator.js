@@ -17,7 +17,7 @@ import {faUserGroup} from '@fortawesome/free-solid-svg-icons/faUserGroup'
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear'
 import {Buffer} from "buffer";
 import { FIREBASE_DB } from '../firebaseConfig';
-import {ref, child, get, set} from 'firebase/database';
+import {ref, get, set, push} from 'firebase/database';
 import FriendsModule from '../app/screens/FriendsModule';
 
 const Tab = createBottomTabNavigator();
@@ -34,10 +34,11 @@ export default function BottomTabNavigator() {
   };
 
   const storeUserInfo = async (userData) => {
-    await SecureStore.setItemAsync("user_id", userData.id);
+    const username = userData.id.length < 20 ? userData.id : userData.display_name;
+    await SecureStore.setItemAsync("user_id", username);
     await SecureStore.setItemAsync("user_display_name", userData.display_name);
-    await SecureStore.setItemAsync("user_email", userData.email);
-    await SecureStore.setItemAsync("user_pfp_url", userData.images[0].url);
+    const imageUrl = userData.images.length > 0 ? userData.images[0].url : "none";
+    await SecureStore.setItemAsync("user_pfp_url", imageUrl);
   }
 
   const getUserInfo = async () => {
@@ -56,24 +57,46 @@ export default function BottomTabNavigator() {
       {
         setProfileId(profileJson.id);
         storeUserInfo(profileJson);
-        checkDatabase(profileJson);
+        storeDatabase(profileJson);
       });
 
   };
 
-  const checkDatabase = (profileData) => {
-    const dbRef = ref(FIREBASE_DB, `users/${profileData.id}`);
-    get(dbRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        console.log("already exist");
-      } else {
-        console.log("creating user");
-        set(dbRef, {
-          displayName: profileData.display_name,
-          testEmail: profileData.email,
-        });
+  const storeDatabase = async (profileData) => {
+    const dbRef = ref(FIREBASE_DB, 'users');
+    const snapshot = await get(dbRef);
+    let existingUser = false;
+    const username = profileData.id.length < 20 ? profileData.id : profileData.display_name;
+  
+    if(snapshot.exists()){
+      existingUser = Object.values(snapshot.val()).find(user => 
+        user.username === username && user.displayName === profileData.display_name
+      );
+    }
+
+  
+    if (existingUser) {
+      const existingUserKey = Object.keys(snapshot.val()).find((key) => {
+        const user = snapshot.val()[key];
+        return user.username === username && user.displayName === profileData.display_name;
+      });
+    
+      if (existingUserKey) {
+        await SecureStore.setItemAsync("db_key", existingUserKey); 
+        return;
       }
-    });
+    }
+  
+    const userRef = push(dbRef);
+    const imageUrl = profileData.images.length > 0 ? profileData.images[0].url : "none";
+    set(userRef, {
+      displayName: profileData.display_name,
+      username: username,
+      image: imageUrl,
+    }).then(
+      SecureStore.setItemAsync("db_key", userRef.key)
+    );
+
   };
   
 

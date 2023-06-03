@@ -12,8 +12,8 @@ export default YourMusic = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const userId = await SecureStore.getItemAsync('user_id');
-      const dbRef = ref(FIREBASE_DB, `users/${userId}/Music/YourMusic`);
+      const dbKey = await SecureStore.getItemAsync('db_key');
+      const dbRef = ref(FIREBASE_DB, `users/${dbKey}/Music/YourMusic`);
 
       const listener = onValue(dbRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -37,8 +37,8 @@ export default YourMusic = () => {
   }, []);
 
   const clearAllSongs = async () => {
-    const userId = await SecureStore.getItemAsync('user_id').then(
-      (userId) => clearFromDB(userId)
+    const userId = await SecureStore.getItemAsync('db_key').then(
+      (key) => clearFromDB(key)
     );
   };
 

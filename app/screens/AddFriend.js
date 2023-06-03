@@ -6,23 +6,40 @@ import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 import TestFriends from '../../components/TestFriends';
 import FriendComponent from '../../components/FriendComponent';
 import * as SecureStore from 'expo-secure-store';
+import { ref, child, query, orderByChild, onValue, equalTo, get } from 'firebase/database';
+import { FIREBASE_DB } from '../../firebaseConfig';
 
 
 
 const AddFriend = ({navigation}) => {
   const [searchText, setSearchText] = useState("");
   const [showClearButton, setShowClearButton] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
 
-  const search = async () => {
-    console.log(searchText);
-  };
+const search = async () => {
+  if (searchText.length > 0) {
+    const dbRef = ref(FIREBASE_DB, "users");
+    const searchQuery = query(dbRef, orderByChild("displayName"));
+    const snapshot = await get(searchQuery);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const search = Object.values(data).filter(user =>
+        user.displayName.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setSearchResults(search);
+    } else {
+      setSearchResults([]);
+    }
+  } 
+};
+
 
   const clearSearchText = () => {
-    Keyboard.dismiss();
     setSearchText("");
     setShowClearButton(false);
-
   };
 
   const touchElsewhere = async () => {
@@ -84,13 +101,24 @@ const AddFriend = ({navigation}) => {
 
       </SafeAreaView>
       <View style={styles.body}>
-        <FlatList
+        {/* <FlatList
         data={TestFriends}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => <FriendComponent item={item} adding={true} requesting={false}/>}
         contentContainerStyle={styles.flatListContainer} 
-        />
+        /> */}
+
+        <FlatList
+        data={searchResults}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item}) => (
+          <View>
+            <Text>{item.displayName}</Text>
+            <Text>{item.username}</Text>
+          </View>
+
+        )}/>
 
       </View>
     </View>

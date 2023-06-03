@@ -108,7 +108,7 @@ const PostScreen = () => {
   };
 
   const postSong = async () => {
-    await SecureStore.getItemAsync("user_id").
+    await SecureStore.getItemAsync("db_key").
     then(userId => postToDatabase(userId));
     closeModal();
   }

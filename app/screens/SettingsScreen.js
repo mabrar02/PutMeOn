@@ -10,7 +10,7 @@ const SettingsScreen = ({navigation}) => {
 
   const [displayName, setDisplayName] = useState('');
   const [pfpUrl, setPfpUrl] = useState("https://img.freepik.com/free-icon/user_318-804790.jpg");
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     loadUserData();
@@ -21,10 +21,14 @@ const SettingsScreen = ({navigation}) => {
     .then(name => setDisplayName(name));
 
     await SecureStore.getItemAsync('user_pfp_url')
-    .then(url => setPfpUrl(url));
+    .then(url => {
+      if(url != "none"){
+        setPfpUrl(url)
+      }
+      });
 
-    await SecureStore.getItemAsync('user_email')
-    .then(userEmail => setEmail(userEmail));
+    await SecureStore.getItemAsync('user_id')
+    .then(userName => setUserName(userName));
 
   };
 
@@ -35,7 +39,6 @@ const SettingsScreen = ({navigation}) => {
     await SecureStore.deleteItemAsync("refresh_token");
     await SecureStore.deleteItemAsync("token_expire");
     await SecureStore.deleteItemAsync("user_id");
-    await SecureStore.deleteItemAsync("user_email");
     await SecureStore.deleteItemAsync("user_pfp_url");
     await SecureStore.deleteItemAsync("user_display_name");
   }
@@ -71,9 +74,9 @@ const SettingsScreen = ({navigation}) => {
     <SafeAreaView style={{ flex: 1, alignItems: 'center', alignContent: 'center', backgroundColor: '#EBFFE9' }}>
       <View style={{ flex: 0.5 }}>
         <Image style={styles.profilePic} source={{ uri: pfpUrl }} />
-        <View style={{ marginVertical: 20 }}>
+        <View style={{ marginVertical: 20, alignItems: "center" }}>
           <Text style={styles.displayName}>{displayName}</Text>
-          <Text style={styles.userName}>{email}</Text>
+          <Text style={styles.userName}>@{userName}</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.buttonStyle} onPress={() => confirmLogout()}>
