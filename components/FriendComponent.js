@@ -22,6 +22,10 @@ const FriendComponent = ({item, requesting, adding}) => {
         pfpUrl = "https://img.freepik.com/free-icon/user_318-804790.jpg"
     }
 
+    const addFriend = () => {
+        console.log(item.userId);
+    }
+
   return (
     <View style={styles.container}>
 
@@ -43,7 +47,7 @@ const FriendComponent = ({item, requesting, adding}) => {
                 </TouchableOpacity>
             )}
             {adding && (
-                <TouchableOpacity style={styles.addButton}>
+                <TouchableOpacity style={styles.addButton} onPress={() => addFriend()}>
                     <Text style={styles.buttonText}>Add</Text>
                 </TouchableOpacity>
             )}

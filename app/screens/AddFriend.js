@@ -1,5 +1,5 @@
 import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image, Dimensions, Modal } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
 import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
@@ -15,6 +15,7 @@ const AddFriend = ({navigation}) => {
   const [searchText, setSearchText] = useState("");
   const [showClearButton, setShowClearButton] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [existingFriends, setExistingFriends] = useState([]);
 
 
 const search = async () => {
@@ -25,16 +26,31 @@ const search = async () => {
 
     if (snapshot.exists()) {
       const data = snapshot.val();
-      const search = Object.values(data).filter(user =>
-        user.displayName.toLowerCase().includes(searchText.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchText.toLowerCase())
+      const search = Object.entries(data).map(([key, user]) => ({
+        ...user,
+        userId: key, 
+      })).filter(user =>
+        (user.displayName.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchText.toLowerCase()))
+        && !existingFriends.includes(user.userId)
       );
       setSearchResults(search);
+      console.log(search);
     } else {
       setSearchResults([]);
     }
   } 
 };
+
+    useEffect(() => {
+      fetchRequestExclusions();
+    }, []);
+
+
+    const fetchRequestExclusions = async () => {
+      const key = await SecureStore.getItemAsync("db_key");
+      setExistingFriends(prevFriends => [...prevFriends, key]);
+    };
 
 
   const clearSearchText = () => {
