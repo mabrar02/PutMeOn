@@ -3,7 +3,7 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 
-const FriendComponent = ({item, requesting, adding}) => {
+const FriendComponent = ({item, requesting, adding, onConfirmAdd, onConfirmRequest}) => {
     const maxDisplayLength = 30;
     const maxEmailLength = 35;
 
@@ -23,8 +23,13 @@ const FriendComponent = ({item, requesting, adding}) => {
     }
 
     const addFriend = () => {
-        console.log(item.userId);
+        onConfirmAdd(item.userId, item);
     }
+
+    const acceptRequest = () => {
+        onConfirmRequest(item.userId, item);
+    }
+
 
   return (
     <View style={styles.container}>
@@ -37,7 +42,7 @@ const FriendComponent = ({item, requesting, adding}) => {
         
         <View style={styles.rightSideContainer}>
             {requesting && (
-                <TouchableOpacity style={styles.requestButton}>
+                <TouchableOpacity style={styles.requestButton} onPress={() => acceptRequest()}>
                     <Text style={styles.buttonText}>Accept?</Text>
                 </TouchableOpacity>
             )}

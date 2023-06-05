@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image, Dimensions, Modal } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image, Dimensions, Modal, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
@@ -6,7 +6,7 @@ import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 import TestFriends from '../../components/TestFriends';
 import FriendComponent from '../../components/FriendComponent';
 import * as SecureStore from 'expo-secure-store';
-import { ref, child, query, orderByChild, onValue, equalTo, get } from 'firebase/database';
+import { ref, child, query, orderByChild, onValue, equalTo, get, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
 
 
@@ -40,6 +40,9 @@ const search = async () => {
       setSearchResults([]);
     }
   } 
+  else{
+    setSearchResults([]);
+  }
 };
 
     useEffect(() => {
@@ -51,6 +54,33 @@ const search = async () => {
       const key = await SecureStore.getItemAsync("db_key");
       setExistingFriends(prevFriends => [...prevFriends, key]);
     };
+
+    const addFriends = (friendId, friendInfo) => {
+      Alert.alert(
+        'Add Friend',
+        `Add ${friendInfo.displayName} as a friend?`,
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Confirm', style: "default", onPress: (() => confirmAdd(friendId))}
+        ],
+        {cancelable: true}
+      )
+    }
+
+    const confirmAdd = async (id) => {
+      const userId = await SecureStore.getItemAsync("db_key");
+      const username = await SecureStore.getItemAsync("user_id");
+      const displayName = await SecureStore.getItemAsync("user_display_name");
+      const image = await SecureStore.getItemAsync("user_pfp_url");
+
+      const friendRef = ref(FIREBASE_DB, `users/${id}/Friends/Requests/${userId}`);
+      set(friendRef, {
+        displayName: displayName,
+        username: username,
+        image: image,
+        userId: userId,
+    });
+    }
 
 
   const clearSearchText = () => {
@@ -121,7 +151,7 @@ const search = async () => {
         data={searchResults}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => <FriendComponent item={item} adding={true} requesting={false}/>}
+        renderItem={({item}) => <FriendComponent item={item} adding={true} requesting={false} onConfirmAdd={addFriends}/>}
         contentContainerStyle={styles.flatListContainer} 
         />
 
