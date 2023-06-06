@@ -52,6 +52,13 @@ const search = async () => {
 
     const fetchRequestExclusions = async () => {
       const key = await SecureStore.getItemAsync("db_key");
+      const dbRef = ref(FIREBASE_DB, `users/${key}/Friends/Added`);
+      const snapshot = await get(dbRef);
+
+      if(snapshot.exists()){
+        setExistingFriends(Object.keys(snapshot.val()));
+      }
+
       setExistingFriends(prevFriends => [...prevFriends, key]);
     };
 

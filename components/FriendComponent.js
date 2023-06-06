@@ -3,7 +3,7 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 
-const FriendComponent = ({item, requesting, adding, onConfirmAdd, onConfirmRequest}) => {
+const FriendComponent = ({item, requesting, adding, onConfirmAdd, onConfirmRequest, onUnAdd, onDeclineRequest,}) => {
     const maxDisplayLength = 30;
     const maxEmailLength = 35;
 
@@ -30,6 +30,23 @@ const FriendComponent = ({item, requesting, adding, onConfirmAdd, onConfirmReque
         onConfirmRequest(item.userId, item);
     }
 
+    const unAdd = () => {
+        onUnAdd(item.userId, item);
+    }
+
+    const declineRequest = () => {
+        onDeclineRequest(item.userId, item);
+    }
+
+    const handleTimesButton = () => {
+        if(!requesting && !adding){
+            unAdd();
+        }
+        else if(requesting){
+            declineRequest();
+        }
+    }
+
 
   return (
     <View style={styles.container}>
@@ -47,7 +64,7 @@ const FriendComponent = ({item, requesting, adding, onConfirmAdd, onConfirmReque
                 </TouchableOpacity>
             )}
             {!adding && (
-                <TouchableOpacity style={styles.timesButton}>
+                <TouchableOpacity style={styles.timesButton} onPress={() => handleTimesButton()}>
                     <FontAwesomeIcon icon={faTimes} size={20} color='#949494'/>
                 </TouchableOpacity>
             )}

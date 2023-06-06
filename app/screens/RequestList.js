@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, FlatList, Alert } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUserPlus} from '@fortawesome/free-solid-svg-icons/faUserPlus';
@@ -51,6 +51,7 @@ export default RequestList = () => {
       displayName: userInfo.displayName,
       username: userInfo.username,
       image: userInfo.image,
+      userId: id,
     })
 
     const friendRef = ref(FIREBASE_DB, `users/${id}/Friends/Added/${userId}`);
@@ -58,10 +59,31 @@ export default RequestList = () => {
       displayName: displayName,
       username: username,
       image: image,
+      userId: userId,
   });
 
   const removeReqRef = ref(FIREBASE_DB, `users/${userId}/Friends/Requests/${id}`);
+  const removeUserReqRef = ref(FIREBASE_DB, `users/${id}/Friends/Requests/${userId}`);
   remove(removeReqRef);
+  remove(removeUserReqRef);
+  }
+
+  const declineRequest = (id, userInfo) => {
+    Alert.alert(
+      'Deline Request',
+      `Are you sure you want to decline ${userInfo.displayName} as a friend?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Decline', style: "destructive", onPress: (() => confirmDecline(id))}
+      ],
+      {cancelable: true}
+    )
+  }
+
+  const confirmDecline = async (friendId) => {
+    const userId = await SecureStore.getItemAsync("db_key");
+    const removeReqRef = ref(FIREBASE_DB, `users/${userId}/Friends/Requests/${friendId}`);
+    remove(removeReqRef);
   }
 
   return (
@@ -70,7 +92,7 @@ export default RequestList = () => {
     data={friends}
     showsVerticalScrollIndicator={false}
     keyExtractor={(item, index) => index.toString()}
-    renderItem={({item}) => <FriendComponent item={item} adding={false} requesting={true} onConfirmRequest={acceptRequest}/>}
+    renderItem={({item}) => <FriendComponent item={item} adding={false} requesting={true} onConfirmRequest={acceptRequest} onDeclineRequest={declineRequest}/>}
     contentContainerStyle={styles.flatListContainer} 
     />
   </View>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, FlatList, Alert } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUserPlus} from '@fortawesome/free-solid-svg-icons/faUserPlus';
@@ -37,6 +37,28 @@ export default FriendsList = () => {
 
     fetchData();
   }, []);
+
+
+  const unAdd = (id, userInfo) => {
+    Alert.alert(
+      'Remove Friend',
+      `Are you sure you want to unadd ${userInfo.displayName} as a friend? You will no longer see music from this user`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Remove', style: "destructive", onPress: (() => confirmUnAdd(id))}
+      ],
+      {cancelable: true}
+    )
+  }
+
+  const confirmUnAdd = async (friendId) => {
+    const userId = await SecureStore.getItemAsync("db_key");
+    const removeFromUser = ref(FIREBASE_DB, `users/${userId}/Friends/Added/${friendId}`);
+    const removeFromFriend = ref(FIREBASE_DB, `users/${friendId}/Friends/Added/${userId}`);
+    remove(removeFromUser);
+    remove(removeFromFriend);
+  }
+
   return (
     <View style={styles.body}>
 
@@ -45,7 +67,7 @@ export default FriendsList = () => {
     data={friends}
     showsVerticalScrollIndicator={false}
     keyExtractor={(item, index) => index.toString()}
-    renderItem={({item}) => <FriendComponent item={item} adding={false} requesting={false}/>}
+    renderItem={({item}) => <FriendComponent item={item} adding={false} requesting={false} onUnAdd={unAdd}/>}
     contentContainerStyle={styles.flatListContainer} 
     />
 
