@@ -5,6 +5,8 @@ import MusicComponent from '../../components/MusicComponent';
 import * as SecureStore from "expo-secure-store";
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue } from 'firebase/database';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import DeleteSong from '../../components/DeleteSong';
 
 export default YourMusic = () => {
   const [songs, setSongs] = useState([]);
@@ -58,6 +60,11 @@ export default YourMusic = () => {
     );
   };
 
+  const confirmDeleteSong = (id) => {
+    console.log(id);
+  }
+  
+
   const renderFooter = () => {
     return (
       songs.length > 0 &&
@@ -83,6 +90,7 @@ export default YourMusic = () => {
         contentContainerStyle={styles.flatListContainer}
         ListFooterComponent={renderFooter}
       />
+
     </View>
   );
 };

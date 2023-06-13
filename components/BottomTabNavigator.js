@@ -20,6 +20,7 @@ import { FIREBASE_DB } from '../firebaseConfig';
 import {ref, get, set, push} from 'firebase/database';
 import FriendsModule from '../app/screens/FriendsModule';
 
+
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
@@ -161,7 +162,7 @@ export default function BottomTabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{
         tabBarIcon: ({focused}) => (
-            <View style={{alignItems: "center", justifyContent: "center",}}>
+            <View style={{alignItems: "center", justifyContent: "center", top: 15}}>
                 <FontAwesomeIcon icon={ faHouse } size={30} color={focused ? "#3E6F38" : "#515151"} />
                 <Text style={[styles.tabBarText, {color: focused ? "#3E6F38" : "#515151"}]}>HOME</Text>
             </View>
@@ -169,7 +170,7 @@ export default function BottomTabNavigator() {
       }} />
       <Tab.Screen name="Music" component={SavedMusicScreen}  options={{
         tabBarIcon: ({focused}) => (
-            <View style={{alignItems: "center", justifyContent: "center"}}>
+            <View style={{alignItems: "center", justifyContent: "center", top: 15}}>
                 <FontAwesomeIcon icon={ faMusic } size={30} color={focused ? "#3E6F38" : "#515151"} />
                 <Text style={[styles.tabBarText, {color: focused ? "#3E6F38" : "#515151"}]}>SONGS</Text>
             </View>
@@ -177,7 +178,7 @@ export default function BottomTabNavigator() {
       }} />
       <Tab.Screen name="Post" component={PostScreen}  options={{
         tabBarIcon: ({focused}) => (
-            <View style={{alignItems: "center", justifyContent: "center"}}>
+            <View style={{alignItems: "center", justifyContent: "center", top: 15}}>
                 <FontAwesomeIcon icon={ faSquarePlus } size={30} color={focused ? "#3E6F38" : "#515151"} />
                 <Text style={[styles.tabBarText, {color: focused ? "#3E6F38" : "#515151"}]}>POST</Text>
             </View>
@@ -185,7 +186,7 @@ export default function BottomTabNavigator() {
       }} />
       <Tab.Screen name="FriendsModule" component={FriendsModule}  options={{
         tabBarIcon: ({focused}) => (
-            <View style={{alignItems: "center", justifyContent: "center"}}>
+            <View style={{alignItems: "center", justifyContent: "center", top: 15}}>
                 <FontAwesomeIcon icon={ faUserGroup } size={30} color={focused ? "#3E6F38" : "#515151"} />
                 <Text style={[styles.tabBarText, {color: focused ? "#3E6F38" : "#515151"}]}>FRIENDS</Text>
             </View>
@@ -193,7 +194,7 @@ export default function BottomTabNavigator() {
       }} />
       <Tab.Screen name="Settings" component={SettingsScreen}  options={{
         tabBarIcon: ({focused}) => (
-            <View style={{alignItems: "center", justifyContent: "center"}}>
+            <View style={{alignItems: "center", justifyContent: "center", top: 15}}>
                 <FontAwesomeIcon icon={ faGear } size={30} color={focused ? "#3E6F38" : "#515151"} />
                 <Text style={[styles.tabBarText, {color: focused ? "#3E6F38" : "#515151"}]}>SETTINGS</Text>
             </View>
