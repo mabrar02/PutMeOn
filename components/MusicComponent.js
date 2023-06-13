@@ -7,56 +7,110 @@ import Animated, {
   useSharedValue,
   withTiming,
   runOnJS,
-  useWorkletCallback
 } from 'react-native-reanimated';
-import {faTrashCan} from '@fortawesome/free-regular-svg-icons/faTrashCan'
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faTrashCan } from '@fortawesome/free-regular-svg-icons/faTrashCan';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
-    const artistNames = item.artists.map((artist) => artist.name).join(', ');
-    const maxLength = 25;
-    const maxArtistLength = 30;
-    const screenWidth = Dimensions.get('window').width;
-    let displayedTrackTitle = item.title;
-    if (displayedTrackTitle.length > maxLength) {
-      displayedTrackTitle = displayedTrackTitle.substring(0, maxLength - 3) + '...';
-    }
-  
-    let displayedTrackArtists = artistNames;
-    if (displayedTrackArtists.length > maxArtistLength) {
-      displayedTrackArtists = displayedTrackArtists.substring(0, maxArtistLength - 3) + '...';
-    }
+  const artistNames = item.artists.map((artist) => artist.name).join(', ');
+  const maxLength = 25;
+  const maxArtistLength = 30;
+  const screenWidth = Dimensions.get('window').width;
+  let displayedTrackTitle = item.title;
+  if (displayedTrackTitle.length > maxLength) {
+    displayedTrackTitle = displayedTrackTitle.substring(0, maxLength - 3) + '...';
+  }
 
-    
-    const translateXThreshold = -screenWidth * 0.3;
-  
-    const translateX = useSharedValue(0);
-  
-    const panGestureEvent = useAnimatedGestureHandler({
-      onStart: () => {},
-      onActive: (event) => {
-        translateX.value = event.translationX;
-      },
-      onEnd: () => {
-        const shouldBeDismissed = translateX.value < translateXThreshold;
-        if (shouldBeDismissed) {
-          translateX.value = withTiming(-screenWidth);
-        } else {
-          translateX.value = withTiming(0);
-        }
+  let displayedTrackArtists = artistNames;
+  if (displayedTrackArtists.length > maxArtistLength) {
+    displayedTrackArtists = displayedTrackArtists.substring(0, maxArtistLength - 3) + '...';
+  }
 
-      },
-    });
-  
-    const rStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: translateX.value }],
-    }));
+  const translateXThreshold = -screenWidth * 0.3;
+  const maxSwipeAmount = -screenWidth * 0.4; 
+
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(80);
+  const marginVertical = useSharedValue(10);
+  const opacity = useSharedValue(1);
+
+  const handleSwipeComplete = () => {
+    translateX.value = withTiming(-screenWidth);
+    translateY.value = withTiming(0);
+  };
+
+  const handleDeleteConfirmation = () => {
+    Alert.alert(
+      'Delete Song',
+      'Are you sure you want to delete this song?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => {
+            translateX.value = withTiming(0);
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            translateX.value = withTiming(-screenWidth, undefined);
+            translateY.value = withTiming(0);
+            marginVertical.value = withTiming(0);
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const panGestureEvent = useAnimatedGestureHandler({
+    onStart: () => {},
+    onActive: (event) => {
+      if (event.translationX >= 0) {
+        translateX.value = 0; 
+      } else if (event.translationX >= maxSwipeAmount) {
+        translateX.value = event.translationX; 
+      } else {
+        translateX.value = maxSwipeAmount; 
+      }
+    },
+    onEnd: () => {
+      const shouldBeDismissed = translateX.value < translateXThreshold;
+
+      if (shouldBeDismissed) {
+        runOnJS(handleDeleteConfirmation)();
+      } else {
+        translateX.value = withTiming(0);
+      }
+    },
+  });
+
+  const rStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const rDelete = useAnimatedStyle(() => {
+    return {
+      height: translateY.value,
+    }
+  })
+
+
+const rContainerStyle = useAnimatedStyle(() => {
+  return {
+    height: translateY.value,
+    marginVertical: marginVertical.value
+  }
+})
 
   return (
-    <View style={styles.container}>
-        <View style={styles.deleteContainer}>
+    <Animated.View style={[styles.container, rContainerStyle]}>
+        <Animated.View style={[styles.deleteContainer, rDelete]}>
           <FontAwesomeIcon icon={faTrashCan} size={40} color='#fff'/>
-        </View>
+        </Animated.View>
         <PanGestureHandler onGestureEvent={panGestureEvent}>
             <Animated.View style={[{flex: 1, flexDirection: "row", backgroundColor: "#515151",},rStyle]}>
 
@@ -84,7 +138,7 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
         </PanGestureHandler>
 
 
-    </View>
+    </Animated.View>
 
 
   )
@@ -95,15 +149,14 @@ const styles = StyleSheet.create({
     container: {
         width: Dimensions.get('window').width,
         height: 80,
-        marginVertical: 10,
         flex: 1,
         flexDirection: "row",
     },
 
     deleteContainer: {
       height: 80,
-      width: 200,
-      backgroundColor: 'red',
+      width: Dimensions.get('window').width * 0.4,
+      backgroundColor: '#F06363',
       position: 'absolute',
       right: 0,
       alignItems: "center",
