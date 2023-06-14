@@ -60,8 +60,26 @@ export default YourMusic = () => {
     );
   };
 
-  const confirmDeleteSong = (id) => {
-    console.log(id);
+  const confirmDeleteSong = async (item) => {
+    console.log(item.songId);
+    const userId = await SecureStore.getItemAsync("db_key");
+    const removeSong = ref(FIREBASE_DB, `users/${userId}/Music/YourMusic/${item.songId}`);
+    remove(removeSong);
+  }
+  
+  const confirmAddSong = async (item) => {
+    const token = await SecureStore.getItemAsync("access_token");
+    await fetch("https://api.spotify.com/v1/me/tracks", {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ids: [item.songId],
+      }),
+    })
+    console.log(item.songId);
   }
   
 
@@ -86,7 +104,7 @@ export default YourMusic = () => {
       <FlatList
         data={songs}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <MusicComponent item={item} savedSongs={false} />}
+        renderItem={({ item }) => <MusicComponent item={item} savedSongs={false} onDelete={confirmDeleteSong} onAdd={confirmAddSong}/>}
         contentContainerStyle={styles.flatListContainer}
         ListFooterComponent={renderFooter}
       />

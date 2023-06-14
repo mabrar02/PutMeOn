@@ -120,6 +120,7 @@ const PostScreen = () => {
         artists: selectedTrack.artists,
         image: selectedTrack.album.images[2],
         likes: 0,
+        songId: selectedTrack.id,
     });
 }
 

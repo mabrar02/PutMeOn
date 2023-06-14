@@ -9,6 +9,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons/faTrashCan';
+import { faBarsStaggered } from '@fortawesome/free-solid-svg-icons/faBarsStaggered';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
@@ -27,7 +28,9 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
   }
 
   const translateXThreshold = -screenWidth * 0.3;
-  const maxSwipeAmount = -screenWidth * 0.4; 
+  const maxSwipeAmount = -screenWidth * 0.4;
+  const minSwipeAmount = screenWidth * 0.4;
+  const rightSwipeThreshold = screenWidth * 0.3;
 
 
   const translateX = useSharedValue(0);
@@ -35,10 +38,13 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
   const marginVertical = useSharedValue(10);
   const opacity = useSharedValue(1);
 
-  const handleSwipeComplete = () => {
-    translateX.value = withTiming(-screenWidth);
-    translateY.value = withTiming(0);
-  };
+  const deleteSong = () => {
+    onDelete(item);
+  }
+
+  const addSong = () => {
+    onAdd(item);
+  }
 
   const handleDeleteConfirmation = () => {
     Alert.alert(
@@ -56,9 +62,33 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            translateX.value = withTiming(-screenWidth, undefined);
-            translateY.value = withTiming(0);
-            marginVertical.value = withTiming(0);
+            translateX.value = withTiming(0);
+            deleteSong();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const handleAddConfirmation = () => {
+    Alert.alert(
+      'Add Song',
+      `Do you want to add ${displayedTrackTitle} to your liked songs?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => {
+            translateX.value = withTiming(0);
+          },
+        },
+        {
+          text: 'Add Song',
+          style: "default",
+          onPress: () => {
+            translateX.value = withTiming(0);
+            addSong();
           },
         },
       ],
@@ -69,20 +99,25 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
   const panGestureEvent = useAnimatedGestureHandler({
     onStart: () => {},
     onActive: (event) => {
-      if (event.translationX >= 0) {
-        translateX.value = 0; 
-      } else if (event.translationX >= maxSwipeAmount) {
+      if (event.translationX >= maxSwipeAmount && event.translationX < minSwipeAmount) {
         translateX.value = event.translationX; 
-      } else {
-        translateX.value = maxSwipeAmount; 
+      } else if(event.translationX >= maxSwipeAmount){
+        translateX.value = minSwipeAmount; 
+      }
+      else if(event.translationX < minSwipeAmount){
+        translateX.value = maxSwipeAmount;
       }
     },
     onEnd: () => {
       const shouldBeDismissed = translateX.value < translateXThreshold;
+      const shouldBeAdded = translateX.value >= rightSwipeThreshold
 
       if (shouldBeDismissed) {
         runOnJS(handleDeleteConfirmation)();
-      } else {
+      } else if(shouldBeAdded){
+        runOnJS(handleAddConfirmation)();
+      }
+      else {
         translateX.value = withTiming(0);
       }
     },
@@ -108,6 +143,9 @@ const rContainerStyle = useAnimatedStyle(() => {
 
   return (
     <Animated.View style={[styles.container, rContainerStyle]}>
+        <Animated.View style={[styles.addContainer, rDelete]}>
+          <FontAwesomeIcon icon={faBarsStaggered} size={40} color='#fff'/>
+        </Animated.View>
         <Animated.View style={[styles.deleteContainer, rDelete]}>
           <FontAwesomeIcon icon={faTrashCan} size={40} color='#fff'/>
         </Animated.View>
@@ -159,6 +197,16 @@ const styles = StyleSheet.create({
       backgroundColor: '#F06363',
       position: 'absolute',
       right: 0,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+
+    addContainer: {
+      height: 80,
+      width: Dimensions.get('window').width * 0.4,
+      backgroundColor: '#69bf80',
+      position: 'absolute',
+      left: 0,
       alignItems: "center",
       justifyContent: "center"
     },
