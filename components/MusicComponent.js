@@ -152,7 +152,7 @@ const rContainerStyle = useAnimatedStyle(() => {
         <PanGestureHandler onGestureEvent={panGestureEvent}>
             <Animated.View style={[{flex: 1, flexDirection: "row", backgroundColor: "#515151",},rStyle]}>
 
-                <Image source={item.image} style={styles.trackImage}/>
+                <Image source={item.images[0]} style={styles.trackImage}/>
                 <View style={styles.trackDetails}>
                     <Text style={styles.songTitle}>{displayedTrackTitle}</Text>
                     <Text style={styles.songArtists}>{displayedTrackArtists}</Text>

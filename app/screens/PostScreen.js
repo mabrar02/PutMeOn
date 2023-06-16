@@ -118,7 +118,7 @@ const PostScreen = () => {
     set(dbRef, {
         title: selectedTrack.name,
         artists: selectedTrack.artists,
-        image: selectedTrack.album.images[2],
+        images: [selectedTrack.album.images[2], selectedTrack.album.images[1]],
         likes: 0,
         songId: selectedTrack.id,
     });
