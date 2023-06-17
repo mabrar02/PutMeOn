@@ -16,6 +16,8 @@ export default HomeScreen = ({ navigation }) => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [currentRecUser, setCurrentRecuser] = useState(null);
 
+  const [excludedSongs, setExcludedSongs] = useState([]);
+
 
   useEffect(() => {
     getFriends();
@@ -32,32 +34,68 @@ export default HomeScreen = ({ navigation }) => {
 
     if(snapshot.exists()){
       const friendsList = Object.keys(snapshot.val());
-      fetchSongs(friendsList);
+      await fetchSongs(friendsList);
     }
   };
 
   const fetchSongs = async (friendsList) => {
     const dbKey = await SecureStore.getItemAsync('db_key');
-    const songsPromises = friendsList.map(async (friend) => {
+    const yourMusicRef = ref(FIREBASE_DB, `users/${dbKey}/Music/YourMusic`);
+    const savedMusicRef = ref(FIREBASE_DB, `users/${dbKey}/Music/SavedSongs`);
+    const dislikedMusicRef = ref(FIREBASE_DB, `users/${dbKey}/Music/DislikedSongs`);
+
+    const yourMusicSnapshot = await get(yourMusicRef);
+    const savedMusicSnapshot = await get(savedMusicRef);
+    const dislikedMusicSnapshot = await get(dislikedMusicRef);
+    let newExclusions = excludedSongs;
+
+    if(yourMusicSnapshot.exists()){
+      const yourMusicList = Object.keys(yourMusicSnapshot.val());
+      newExclusions = newExclusions.concat(yourMusicList);
+      setExcludedSongs(newExclusions);
+    }
+    if(savedMusicSnapshot.exists()){
+      const savedMusicList = Object.keys(savedMusicSnapshot.val());
+      newExclusions = newExclusions.concat(savedMusicList);
+      setExcludedSongs(newExclusions);
+    }
+    if(dislikedMusicSnapshot.exists()){
+      const savedMusicList = Object.keys(dislikedMusicSnapshot.val());
+      newExclusions = newExclusions.concat(savedMusicList);
+      setExcludedSongs(newExclusions);
+    }
+
+    const songsPromises = await friendsList.map(async (friend) => {
       const friendSongsRef = ref(FIREBASE_DB, `users/${friend}/Music/YourMusic`);
       const friendSongsSnapshot = await get(friendSongsRef);
       const songs = friendSongsSnapshot.val();
+
+      if (songs !== null) {
+        const filteredSongs = Object.keys(songs).filter((songId) => !newExclusions.includes(songId));
+        const filteredSongData = filteredSongs.reduce((acc, songId) => {
+          acc[songId] = songs[songId];
+          return acc;
+        }, {});
+        console.log(filteredSongData);
   
-      return { user: friend, songs };
+        return { user: friend, songs: filteredSongData };
+      } else {
+        return null;
+      }
     });
+
   
     const friendSongs = await Promise.all(songsPromises);
-    const filteredFriendSongs = friendSongs.filter((friend) => friend.songs !== null);
+    const filteredFriendSongs = friendSongs.filter((friend) => friend !== null && friend.songs !== null);
+
     setAllSongs(filteredFriendSongs);
     setCurrentSongs(Object.values(filteredFriendSongs[0].songs));
-    console.log(filteredFriendSongs);
-    console.log(filteredFriendSongs.length);
   };
+  
 
   const dislikeButtonOnPress = () => {
     if(currentSongIndex >= 1) {
       setCurrentSongIndex(currentSongIndex-1);
-      console.log("decrement");
     }
     else if(currentSongIndex == 0){
       prevUsersSongs()
@@ -67,7 +105,6 @@ export default HomeScreen = ({ navigation }) => {
   const likeButtonOnPress = () => {
     if(currentSongIndex < currentSongs.length - 1) {
       setCurrentSongIndex(currentSongIndex+1);
-      console.log("increment");
     }
     else if(currentSongIndex == currentSongs.length - 1){
       nextUsersSongs()
