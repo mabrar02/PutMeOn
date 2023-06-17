@@ -7,14 +7,14 @@ import { faX } from '@fortawesome/free-solid-svg-icons/faX';
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { FIREBASE_DB } from '../../firebaseConfig';
-import { ref, child, get, remove, onValue } from 'firebase/database';
+import { ref, child, get, remove, onValue, set, update } from 'firebase/database';
 
 export default HomeScreen = ({ navigation }) => {
   const [allSongs, setAllSongs] = useState([]);
   const [currentSongs, setCurrentSongs] = useState([]);
   const [currentUsersSongsIndex, setCurrentUsersSongsIndex] = useState(0);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
-  const [currentRecUser, setCurrentRecuser] = useState(null);
+  const [currentRecUser, setCurrentRecUser] = useState(null);
 
   const [excludedSongs, setExcludedSongs] = useState([]);
 
@@ -76,9 +76,13 @@ export default HomeScreen = ({ navigation }) => {
           acc[songId] = songs[songId];
           return acc;
         }, {});
-        console.log(filteredSongData);
-  
-        return { user: friend, songs: filteredSongData };
+        
+        if(Object.keys(filteredSongData).length == 0){
+          return null;
+        }
+        else{
+          return { user: friend, songs: filteredSongData };
+        }
       } else {
         return null;
       }
@@ -88,21 +92,54 @@ export default HomeScreen = ({ navigation }) => {
     const friendSongs = await Promise.all(songsPromises);
     const filteredFriendSongs = friendSongs.filter((friend) => friend !== null && friend.songs !== null);
 
-    setAllSongs(filteredFriendSongs);
-    setCurrentSongs(Object.values(filteredFriendSongs[0].songs));
+    console.log(filteredFriendSongs);
+    if(filteredFriendSongs.length > 0){
+      setAllSongs(filteredFriendSongs);
+      setCurrentSongs(Object.values(filteredFriendSongs[0].songs));
+      setCurrentRecUser(filteredFriendSongs[0].user);
+    }
+
+    console.log(allSongs.length);
+
   };
+
+  const saveToDatabase = async () => {
+    const dbRef = await SecureStore.getItemAsync("db_key");
+    const friendRef = ref(FIREBASE_DB, `users/${currentRecUser}`);
+    const friendSnapshot = await get(friendRef);
+
+    const friend = friendSnapshot.val();
+    const songToSave = currentSongs[currentSongIndex];
+    const increasedLikes = songToSave.likes + 1;
+
+
+    const savedSongsRef = ref(FIREBASE_DB, `users/${dbRef}/Music/SavedSongs/${songToSave.songId}`);
+    set(savedSongsRef, {
+        title: songToSave.title,
+        artists: songToSave.artists,
+        images: songToSave.images,
+        putOnBy: friend.displayName,
+        songId: songToSave.songId,
+    });
+
+    const updateSongRef = ref(FIREBASE_DB, `users/${currentRecUser}/Music/YourMusic/${songToSave.songId}`);
+    update(updateSongRef, {
+      likes: increasedLikes,
+    });
+}
   
 
   const dislikeButtonOnPress = () => {
-    if(currentSongIndex >= 1) {
-      setCurrentSongIndex(currentSongIndex-1);
-    }
-    else if(currentSongIndex == 0){
-      prevUsersSongs()
-    }
+    console.log(currentRecUser);
+    console.log(currentSongs);
   }
 
   const likeButtonOnPress = () => {
+    saveToDatabase();
+    nextSong();
+  }
+
+  const nextSong = () => {
     if(currentSongIndex < currentSongs.length - 1) {
       setCurrentSongIndex(currentSongIndex+1);
     }
@@ -111,11 +148,21 @@ export default HomeScreen = ({ navigation }) => {
     }
   }
 
+  const prevSong = () => {
+    if(currentSongIndex >= 1) {
+      setCurrentSongIndex(currentSongIndex-1);
+    }
+    else if(currentSongIndex == 0){
+      prevUsersSongs()
+    }
+  }
+
   const nextUsersSongs = () => {
     if(currentUsersSongsIndex < allSongs.length - 1){
       setCurrentSongIndex(0);
       setCurrentUsersSongsIndex(currentUsersSongsIndex + 1);
       setCurrentSongs(Object.values(allSongs[(currentUsersSongsIndex+1)].songs));
+      setCurrentRecUser(allSongs[currentUsersSongsIndex+1].user);
     }
   }
 
@@ -129,14 +176,14 @@ export default HomeScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#EBFFE9'}}>
       <SafeAreaView style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.putMeText}>PutMe</Text>
           <Text style={styles.onText}>ON!</Text>
         </View>
       </SafeAreaView>
-      {allSongs.length != 0 && currentSongs.length != 0 && (
+      {(allSongs.length != 0 && currentSongs.length != 0) && (
       <View style={styles.body}>
         <View style={styles.song}>
           <Image style={styles.songImage} source={currentSongs[currentSongIndex].images[1]}/> 
@@ -155,6 +202,14 @@ export default HomeScreen = ({ navigation }) => {
         </View>
       </View>
       )}
+
+      {(allSongs.length == 0 || currentSongs.length == 0)  && (
+        <View style={styles.body}>
+          <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
+            <Text style={styles.emptylistText}>No new songs to be put on to!</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -163,6 +218,13 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#3E6F38',
     flex: 0.18,
+  },
+
+  emptylistText: {
+    fontSize: 16,
+    fontFamily: 'Rubik-Medium',
+    color: '#A7A7A7',
+    textAlign: "center"
   },
 
   buttonsContainer: {

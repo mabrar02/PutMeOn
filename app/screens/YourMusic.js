@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View, Alert, Dimensions } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import TestMusic from '../../components/TestMusic';
 import MusicComponent from '../../components/MusicComponent';
@@ -97,7 +97,7 @@ export default YourMusic = () => {
   return (
     <View style={styles.container}>
       {songs.length == 0 && (
-        <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150}}> 
+        <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
           <Text style={styles.emptylistText}>You have no songs yet, start posting music for your friends!</Text>
         </View>
       )}
