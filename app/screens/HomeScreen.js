@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import Spotify from '../../components/Spotify';
@@ -8,6 +8,8 @@ import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue, set, update } from 'firebase/database';
+import Swiper from "react-native-deck-swiper";
+import MusicSwipeable from '../../components/MusicSwipeable';
 
 export default HomeScreen = ({ navigation }) => {
   const [allSongs, setAllSongs] = useState([]);
@@ -16,7 +18,11 @@ export default HomeScreen = ({ navigation }) => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [currentRecUser, setCurrentRecUser] = useState(null);
 
+  const [songObjects, setAllSongObjects] = useState([]);
+
   const [excludedSongs, setExcludedSongs] = useState([]);
+
+  const swiperRef = useRef(null);
 
 
   useEffect(() => {
@@ -97,9 +103,8 @@ export default HomeScreen = ({ navigation }) => {
       setAllSongs(filteredFriendSongs);
       setCurrentSongs(Object.values(filteredFriendSongs[0].songs));
       setCurrentRecUser(filteredFriendSongs[0].user);
+      setAllSongObjects(filteredFriendSongs.flatMap((friend) => Object.values(friend.songs)));
     }
-
-    console.log(allSongs.length);
 
   };
 
@@ -126,16 +131,37 @@ export default HomeScreen = ({ navigation }) => {
     update(updateSongRef, {
       likes: increasedLikes,
     });
-}
+  }
+
+  const dislikeToDatabase = async () => {
+    const dbRef = await SecureStore.getItemAsync("db_key");
+    const songToSave = currentSongs[currentSongIndex];
+
+
+    const savedSongsRef = ref(FIREBASE_DB, `users/${dbRef}/Music/DislikedSongs/${songToSave.songId}`);
+    set(savedSongsRef, {
+        title: songToSave.title,
+    });
+  }
   
 
   const dislikeButtonOnPress = () => {
-    console.log(currentRecUser);
-    console.log(currentSongs);
+    swiperRef.current.swipeLeft();
   }
 
   const likeButtonOnPress = () => {
+    swiperRef.current.swipeRight();
+  }
+
+  const like = () => {
+    console.log("like");
     saveToDatabase();
+    nextSong();
+  }
+
+  const dislike = () => {
+    console.log("like");
+    dislikeToDatabase();
     nextSong();
   }
 
@@ -148,30 +174,12 @@ export default HomeScreen = ({ navigation }) => {
     }
   }
 
-  const prevSong = () => {
-    if(currentSongIndex >= 1) {
-      setCurrentSongIndex(currentSongIndex-1);
-    }
-    else if(currentSongIndex == 0){
-      prevUsersSongs()
-    }
-  }
-
   const nextUsersSongs = () => {
     if(currentUsersSongsIndex < allSongs.length - 1){
       setCurrentSongIndex(0);
       setCurrentUsersSongsIndex(currentUsersSongsIndex + 1);
       setCurrentSongs(Object.values(allSongs[(currentUsersSongsIndex+1)].songs));
       setCurrentRecUser(allSongs[currentUsersSongsIndex+1].user);
-    }
-  }
-
-  const prevUsersSongs = () => {
-    if(currentUsersSongsIndex >= 1){
-      const prevNumSongsIndex = Object.keys(allSongs[(currentUsersSongsIndex-1)].songs).length-1;
-      setCurrentSongIndex(prevNumSongsIndex);
-      setCurrentUsersSongsIndex(currentUsersSongsIndex - 1);
-      setCurrentSongs(Object.values(allSongs[(currentUsersSongsIndex-1)].songs));
     }
   }
 
@@ -183,16 +191,15 @@ export default HomeScreen = ({ navigation }) => {
           <Text style={styles.onText}>ON!</Text>
         </View>
       </SafeAreaView>
-      {(allSongs.length != 0 && currentSongs.length != 0) && (
-      <View style={styles.body}>
-        <View style={styles.song}>
-          <Image style={styles.songImage} source={currentSongs[currentSongIndex].images[1]}/> 
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{currentSongs[currentSongIndex].title}</Text>
-            <Text style={styles.songArtist}>{currentSongs[currentSongIndex].artists[0].name}</Text>
-          </View>
+      {(allSongs.length != 0 && currentSongs.length != 0 && songObjects.length != 0) && (
+      <View style={[styles.body]}>
+        <View style={{flex: 0.8, justifyContent: "center", alignItems: "center"}}> 
+
+          <Swiper cards={songObjects} animateCardOpacity={true} ref={swiperRef} renderCard={(card) => <MusicSwipeable item={card}/>} backgroundColor='#EBFFE9'
+          stackSize={2} cardIndex={0} verticalSwipe={false} onSwipedRight={() => like()} onSwipedLeft={() => dislike()}/>
+
         </View>
-        <View style={styles.buttonsContainer}>
+        <View style={[styles.buttonsContainer, {marginVertical: 20,}]}>
           <TouchableOpacity style={styles.dislikeButton} onPress={() => dislikeButtonOnPress()}>
             <FontAwesomeIcon icon={faX} color='#FF8282' size={40}/>
           </TouchableOpacity>
@@ -203,7 +210,7 @@ export default HomeScreen = ({ navigation }) => {
       </View>
       )}
 
-      {(allSongs.length == 0 || currentSongs.length == 0)  && (
+      {(allSongs.length == 0 || currentSongs.length == 0 || songObjects.length == 0)  && (
         <View style={styles.body}>
           <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
             <Text style={styles.emptylistText}>No new songs to be put on to!</Text>
@@ -217,7 +224,7 @@ export default HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#3E6F38',
-    flex: 0.18,
+    flex: 0.16,
   },
 
   emptylistText: {
@@ -231,6 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: Dimensions.get("window").width * 0.8,
+    alignSelf: "center"
   },
 
   likeButton: {
@@ -256,13 +264,13 @@ const styles = StyleSheet.create({
   },
 
   song: {
-    marginTop: 20,
 
   },
   
   songInfo: {
     alignItems: "flex-start",
     marginBottom: 10,
+    width: 300,
   },
 
   songTitle: {
@@ -309,7 +317,6 @@ const styles = StyleSheet.create({
   },
   body: {
     backgroundColor: '#EBFFE9',
-    flex: 0.82,
-    alignItems: 'center',
+    flex: 0.84,
   },
 });

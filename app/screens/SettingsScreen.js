@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { revokeAsync } from "expo-auth-session";
 import * as SecureStore from 'expo-secure-store';
 import { CommonActions } from '@react-navigation/native';
+import { FIREBASE_DB } from '../../firebaseConfig';
+import { ref, child, get, remove, onValue } from 'firebase/database';
 
 
 const SettingsScreen = ({navigation}) => {
@@ -55,6 +57,25 @@ const SettingsScreen = ({navigation}) => {
       {cancelable: true}
     )
   }
+
+  const confirmReset = () => {
+    Alert.alert(
+      'Reset Songs',
+      "Are you sure you want to reset your seen songs? This means any songs you've disliked can be recommended to you again.",
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Reset', style: 'destructive', onPress: reset}
+      ],
+      {cancelable: true}
+    )
+  }
+
+  const reset = async () => {
+    const dbRef = await SecureStore.getItemAsync("db_key");
+    const removeSong = ref(FIREBASE_DB, `users/${dbRef}/Music/DislikedSongs`);
+    remove(removeSong);
+  }
+
   const logout = async () => {
     const accessTok = await SecureStore.getItemAsync("access_token");
     const discovery = {
@@ -81,6 +102,9 @@ const SettingsScreen = ({navigation}) => {
       </View>
       <TouchableOpacity style={styles.buttonStyle} onPress={() => confirmLogout()}>
         <Text style={styles.buttonText}>LOGOUT</Text> 
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.buttonStyle, {backgroundColor: "#9fd0ed"}]} onPress={() => confirmReset()}>
+        <Text style={styles.buttonText}>RESET SEEN SONGS</Text> 
       </TouchableOpacity>
     </SafeAreaView>
   );
