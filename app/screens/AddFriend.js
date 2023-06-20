@@ -8,6 +8,8 @@ import FriendComponent from '../../components/FriendComponent';
 import * as SecureStore from 'expo-secure-store';
 import { ref, child, query, orderByChild, onValue, equalTo, get, set } from 'firebase/database';
 import { FIREBASE_DB } from '../../firebaseConfig';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+
 
 
 
@@ -16,6 +18,8 @@ const AddFriend = ({navigation}) => {
   const [showClearButton, setShowClearButton] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [existingFriends, setExistingFriends] = useState([]);
+
+
 
 
 const search = async () => {
@@ -87,6 +91,18 @@ const search = async () => {
         image: image,
         userId: userId,
     });
+    showToast();
+    }
+
+    const showToast = () => {
+      Toast.show({
+        type: 'success',
+        text1: 'Request Sent',
+        text2: 'A friend request has been sent!',
+        position: "bottom",
+        bottomOffset: 75,
+        visibilityTime: 1500,
+      });
     }
 
 

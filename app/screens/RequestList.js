@@ -6,6 +6,7 @@ import FriendComponent from '../../components/FriendComponent';
 import TestFriends from '../../components/TestFriends';
 import * as SecureStore from 'expo-secure-store';
 import { ref, child, query, orderByChild, onValue, equalTo, get, set, remove } from 'firebase/database';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import { FIREBASE_DB } from '../../firebaseConfig';
 
 export default RequestList = () => {
@@ -66,6 +67,18 @@ export default RequestList = () => {
   const removeUserReqRef = ref(FIREBASE_DB, `users/${id}/Friends/Requests/${userId}`);
   remove(removeReqRef);
   remove(removeUserReqRef);
+  showToast(userInfo.displayName);
+  }
+
+  const showToast = (name) => {
+    Toast.show({
+      type: 'success',
+      text1: 'Friend Added',
+      text2: `You are now friends with ${name}!`,
+      position: "bottom",
+      bottomOffset: 75,
+      visibilityTime: 1500,
+    });
   }
 
   const declineRequest = (id, userInfo) => {

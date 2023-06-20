@@ -2,7 +2,6 @@ import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image } from 'rea
 import React, { useEffect, useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
-import Spotify from '../../components/Spotify';
 import { faX } from '@fortawesome/free-solid-svg-icons/faX';
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -10,6 +9,7 @@ import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue, set, update } from 'firebase/database';
 import Swiper from "react-native-deck-swiper";
 import MusicSwipeable from '../../components/MusicSwipeable';
+import Toast from 'react-native-toast-message';
 
 export default HomeScreen = ({ navigation }) => {
   const [allSongs, setAllSongs] = useState([]);
@@ -34,6 +34,14 @@ export default HomeScreen = ({ navigation }) => {
 
 
   const getFriends = async () => {
+    setAllSongs([]);
+    setCurrentSongs([]);
+    setCurrentUsersSongsIndex(0);
+    setCurrentSongIndex(0);
+    setCurrentRecUser(null);
+    setAllSongObjects([]);
+    setExcludedSongs([]);
+    
     const dbKey = await SecureStore.getItemAsync('db_key');
     const friendsRef = ref(FIREBASE_DB, `users/${dbKey}/Friends/Added`);
     const snapshot = await get(friendsRef);
@@ -212,7 +220,7 @@ export default HomeScreen = ({ navigation }) => {
 
       {(allSongs.length == 0 || currentSongs.length == 0 || songObjects.length == 0)  && (
         <View style={styles.body}>
-          <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
+          <View style={{alignSelf: "center", alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
             <Text style={styles.emptylistText}>No new songs to be put on to!</Text>
           </View>
         </View>

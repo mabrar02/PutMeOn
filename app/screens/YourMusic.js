@@ -7,6 +7,7 @@ import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue } from 'firebase/database';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import DeleteSong from '../../components/DeleteSong';
+import Toast from 'react-native-toast-message';
 
 export default YourMusic = () => {
   const [songs, setSongs] = useState([]);
@@ -79,7 +80,18 @@ export default YourMusic = () => {
         ids: [item.songId],
       }),
     })
-    console.log(item.songId);
+    showToast(item.title);
+  }
+
+  const showToast = (trackSong) => {
+    Toast.show({
+      type: 'success',
+      text1: 'Song Saved',
+      text2: `${trackSong} was added to your saved songs!`,
+      position: "bottom",
+      bottomOffset: 75,
+      visibilityTime: 1500,
+    });
   }
   
 

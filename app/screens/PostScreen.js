@@ -10,6 +10,8 @@ import TrackItem from '../../components/TrackItem';
 import { BlurView } from 'expo-blur';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import {ref, child, get, set} from 'firebase/database';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+
 
 const PostScreen = () => {
   const [searchText, setSearchText] = useState("");
@@ -111,6 +113,18 @@ const PostScreen = () => {
     await SecureStore.getItemAsync("db_key").
     then(userId => postToDatabase(userId));
     closeModal();
+    showToast();
+  }
+  
+  const showToast = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Posted',
+      text2: "Song posted, time to put people on!",
+      position: "bottom",
+      bottomOffset: 75,
+      visibilityTime: 2000,
+    });
   }
 
   const postToDatabase = (profileId) => {

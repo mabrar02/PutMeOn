@@ -9,6 +9,9 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import BottomTabNavigator from './components/BottomTabNavigator';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { BaseToast } from 'react-native-toast-message';
+
 
 export default function App() {
 
@@ -52,17 +55,37 @@ export default function App() {
     );
   }
 
+  const toastConfig = { 
+    success: (props) => (
+      <BaseToast
+        {...props}
+        style={{ borderLeftColor: '#3E6F38' }}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+        text1Style={{
+          fontSize: 15,
+          fontWeight: '400',
+          fontFamily: 'Rubik-Medium'
+        }}
+        text2Style={{ 
+          fontFamily: 'Rubik-Regular'
+        }}
+      />
+    ),
+  }
 
   const Stack = createNativeStackNavigator();
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={!isLoggedIn ? 'Onboarding' : 'HomePage'}>
-        <Stack.Screen name="HomePage" component={BottomTabNavigator} options={{gestureEnabled: false}}/>
-        <Stack.Screen name="Onboarding" component={Onboarding} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} options={{gestureEnabled: false}}/>
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName={!isLoggedIn ? 'Onboarding' : 'HomePage'}>
+          <Stack.Screen name="HomePage" component={BottomTabNavigator} options={{gestureEnabled: false}}/>
+          <Stack.Screen name="Onboarding" component={Onboarding} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} options={{gestureEnabled: false}}/>
+        </Stack.Navigator>
+      </NavigationContainer>
+      <Toast config={toastConfig}/>
+    </>
   );
   
 }
