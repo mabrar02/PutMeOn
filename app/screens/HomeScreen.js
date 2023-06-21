@@ -10,6 +10,7 @@ import { ref, child, get, remove, onValue, set, update } from 'firebase/database
 import Swiper from "react-native-deck-swiper";
 import MusicSwipeable from '../../components/MusicSwipeable';
 import Toast from 'react-native-toast-message';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 export default HomeScreen = ({ navigation }) => {
   const [allSongs, setAllSongs] = useState([]);
@@ -24,11 +25,20 @@ export default HomeScreen = ({ navigation }) => {
 
   const swiperRef = useRef(null);
 
+  const spotifyApi = new SpotifyWebApi();
+
 
   useEffect(() => {
-    getFriends();
+    setUp()
 
   }, []);
+
+  const setUp = async () => {
+    await SecureStore.getItemAsync("access_token").then(
+      accessToken => {spotifyApi.setAccessToken(accessToken)}
+    );
+    getFriends();
+  }
 
 
 
@@ -191,6 +201,14 @@ export default HomeScreen = ({ navigation }) => {
     }
   }
 
+  const playSong = async () => {
+    spotifyApi.play({
+      uris: `spotify:track:${currentSongs[currentSongIndex].songId}`,
+      position_ms: 0,
+    });
+    // console.log("playing: " + );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#EBFFE9'}}>
       <SafeAreaView style={styles.header}>
@@ -211,8 +229,11 @@ export default HomeScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.dislikeButton} onPress={() => dislikeButtonOnPress()}>
             <FontAwesomeIcon icon={faX} color='#FF8282' size={40}/>
           </TouchableOpacity>
+          <TouchableOpacity style={{backgroundColor: "yellow", }} onPress={() => playSong()}>
+            <Text>Test Play</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.likeButton} onPress={() => likeButtonOnPress()}>
-          <FontAwesomeIcon icon={faHeart} color='#6BD645' size={40}/>
+            <FontAwesomeIcon icon={faHeart} color='#6BD645' size={40}/>
           </TouchableOpacity>
         </View>
       </View>
