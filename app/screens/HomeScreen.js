@@ -10,7 +10,7 @@ import { ref, child, get, remove, onValue, set, update } from 'firebase/database
 import Swiper from "react-native-deck-swiper";
 import MusicSwipeable from '../../components/MusicSwipeable';
 import Toast from 'react-native-toast-message';
-import SpotifyWebApi from 'spotify-web-api-node';
+import { Audio } from 'expo-av';
 
 export default HomeScreen = ({ navigation }) => {
   const [allSongs, setAllSongs] = useState([]);
@@ -18,6 +18,7 @@ export default HomeScreen = ({ navigation }) => {
   const [currentUsersSongsIndex, setCurrentUsersSongsIndex] = useState(0);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [currentRecUser, setCurrentRecUser] = useState(null);
+  const [playingSong, setPlayingSong] = useState(null);
 
   const [songObjects, setAllSongObjects] = useState([]);
 
@@ -25,21 +26,12 @@ export default HomeScreen = ({ navigation }) => {
 
   const swiperRef = useRef(null);
 
-  const spotifyApi = new SpotifyWebApi();
 
 
   useEffect(() => {
-    setUp()
+    getFriends();
 
   }, []);
-
-  const setUp = async () => {
-    await SecureStore.getItemAsync("access_token").then(
-      accessToken => {spotifyApi.setAccessToken(accessToken)}
-    );
-    getFriends();
-  }
-
 
 
 
@@ -183,7 +175,17 @@ export default HomeScreen = ({ navigation }) => {
     nextSong();
   }
 
+  const unloadSong = async () => {
+    await playingSong.stopAsync();
+    await playingSong.unloadAsync();
+    setPlayingSong(null);
+  }
+
   const nextSong = () => {
+    if(playingSong) {
+      unloadSong();
+    }
+
     if(currentSongIndex < currentSongs.length - 1) {
       setCurrentSongIndex(currentSongIndex+1);
     }
@@ -202,11 +204,33 @@ export default HomeScreen = ({ navigation }) => {
   }
 
   const playSong = async () => {
-    spotifyApi.play({
-      uris: `spotify:track:${currentSongs[currentSongIndex].songId}`,
-      position_ms: 0,
+    console.log(currentSongs[currentSongIndex].songId);
+    const token = await SecureStore.getItemAsync("access_token");
+    const result = await fetch(`https://api.spotify.com/v1/tracks/${currentSongs[currentSongIndex].songId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    ).then(res => res.json());
+
+    const sound = new Audio.Sound();
+
+    await sound.loadAsync({
+      uri: result.preview_url
     });
-    // console.log("playing: " + );
+
+    if(playingSong == null) {
+      setPlayingSong(sound);
+    }
+    else{
+      unloadSong().then(setPlayingSong(sound));
+    }
+
+    await sound.playAsync();
+
   }
 
   return (
