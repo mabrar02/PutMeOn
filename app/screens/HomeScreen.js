@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { faX } from '@fortawesome/free-solid-svg-icons/faX';
 import { faHeart } from '@fortawesome/free-solid-svg-icons/faHeart';
+import {faPlayCircle} from '@fortawesome/free-regular-svg-icons/faPlayCircle'
+import {faPauseCircle} from '@fortawesome/free-regular-svg-icons/faPauseCircle'
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue, set, update } from 'firebase/database';
@@ -23,6 +25,9 @@ export default HomeScreen = ({ navigation }) => {
   const [songObjects, setAllSongObjects] = useState([]);
 
   const [excludedSongs, setExcludedSongs] = useState([]);
+
+  const [paused, setPaused] = useState(true);
+  const [noMoreSongs, setNoMoreSongs] = useState(false);
 
   const swiperRef = useRef(null);
 
@@ -179,6 +184,7 @@ export default HomeScreen = ({ navigation }) => {
     await playingSong.stopAsync();
     await playingSong.unloadAsync();
     setPlayingSong(null);
+    setPaused(true);
   }
 
   const nextSong = () => {
@@ -201,37 +207,73 @@ export default HomeScreen = ({ navigation }) => {
       setCurrentSongs(Object.values(allSongs[(currentUsersSongsIndex+1)].songs));
       setCurrentRecUser(allSongs[currentUsersSongsIndex+1].user);
     }
+    else{
+      setNoMoreSongs(true);
+    }
+  }
+
+  const fetchPlaySong = async () => {
+    if(playingSong == null){
+      console.log(currentSongs[currentSongIndex].songId);
+      const token = await SecureStore.getItemAsync("access_token");
+      const result = await fetch(`https://api.spotify.com/v1/tracks/${currentSongs[currentSongIndex].songId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      ).then(res => res.json());
+  
+      const sound = new Audio.Sound();
+  
+      await sound.loadAsync({
+        uri: result.preview_url
+      });
+
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.didJustFinish) {
+          sound.replayAsync();
+        }
+      });
+  
+      setPlayingSong(sound);
+      await sound.playAsync();
+      setPaused(false);
+    }
+    else{
+      console.log("Song already playing");
+    }
   }
 
   const playSong = async () => {
-    console.log(currentSongs[currentSongIndex].songId);
-    const token = await SecureStore.getItemAsync("access_token");
-    const result = await fetch(`https://api.spotify.com/v1/tracks/${currentSongs[currentSongIndex].songId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+    if (playingSong == null) {
+      await fetchPlaySong();
+    } else {
+
+      if (!paused) {
+        console.log("pausing");
+        playingSong.pauseAsync().then(() => {
+          setPaused(true);
+        });
+      } else {
+        console.log("playing");
+        playingSong.playAsync().then(() => {
+          setPaused(false);
+        });
       }
-    ).then(res => res.json());
-
-    const sound = new Audio.Sound();
-
-    await sound.loadAsync({
-      uri: result.preview_url
-    });
-
-    if(playingSong == null) {
-      setPlayingSong(sound);
     }
-    else{
-      unloadSong().then(setPlayingSong(sound));
-    }
+  };
 
-    await sound.playAsync();
-
+  const noMoreCards = () => {
+    return (
+      <View>
+        <Text>No more songs!</Text>
+      </View>
+    )
   }
+  
 
   return (
     <View style={{ flex: 1, backgroundColor: '#EBFFE9'}}>
@@ -241,20 +283,22 @@ export default HomeScreen = ({ navigation }) => {
           <Text style={styles.onText}>ON!</Text>
         </View>
       </SafeAreaView>
-      {(allSongs.length != 0 && currentSongs.length != 0 && songObjects.length != 0) && (
+      {(allSongs.length != 0 && currentSongs.length != 0 && songObjects.length != 0 && !noMoreSongs) && (
       <View style={[styles.body]}>
         <View style={{flex: 0.8, justifyContent: "center", alignItems: "center"}}> 
 
           <Swiper cards={songObjects} animateCardOpacity={true} ref={swiperRef} renderCard={(card) => <MusicSwipeable item={card}/>} backgroundColor='#EBFFE9'
-          stackSize={2} cardIndex={0} verticalSwipe={false} onSwipedRight={() => like()} onSwipedLeft={() => dislike()}/>
+          stackSize={2} cardIndex={0} verticalSwipe={false} onSwipedRight={() => like()} onSwipedLeft={() => dislike()}
+          />
 
         </View>
         <View style={[styles.buttonsContainer, {marginVertical: 20,}]}>
           <TouchableOpacity style={styles.dislikeButton} onPress={() => dislikeButtonOnPress()}>
             <FontAwesomeIcon icon={faX} color='#FF8282' size={40}/>
           </TouchableOpacity>
-          <TouchableOpacity style={{backgroundColor: "yellow", }} onPress={() => playSong()}>
-            <Text>Test Play</Text>
+          <TouchableOpacity style={{alignItems: "center", justifyContent: "center"}} onPress={() => playSong()}>
+            {(paused) && <FontAwesomeIcon icon={faPlayCircle} color='#6D6D6D' size={70}/>}
+            {(!paused) && <FontAwesomeIcon icon={faPauseCircle} color='#6D6D6D' size={70}/>}
           </TouchableOpacity>
           <TouchableOpacity style={styles.likeButton} onPress={() => likeButtonOnPress()}>
             <FontAwesomeIcon icon={faHeart} color='#6BD645' size={40}/>
@@ -263,7 +307,7 @@ export default HomeScreen = ({ navigation }) => {
       </View>
       )}
 
-      {(allSongs.length == 0 || currentSongs.length == 0 || songObjects.length == 0)  && (
+      {(allSongs.length == 0 || currentSongs.length == 0 || songObjects.length == 0 || noMoreSongs)  && (
         <View style={styles.body}>
           <View style={{alignSelf: "center", alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
             <Text style={styles.emptylistText}>No new songs to be put on to!</Text>
