@@ -12,12 +12,15 @@
       "supportsTablet": true,
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.mabrar02.PutMeOn"
+    },
+    "android": {},
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "1b55c435-48ae-4932-9efa-de5a3bf16f29"
       }
-    },
-    "android": {
-    },
-    "web": {
-
     }
   }
 }

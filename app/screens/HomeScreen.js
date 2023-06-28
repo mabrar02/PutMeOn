@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useEffect, useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
@@ -30,13 +31,54 @@ export default HomeScreen = ({ navigation }) => {
   const [noMoreSongs, setNoMoreSongs] = useState(false);
 
   const swiperRef = useRef(null);
+  const playingSongRef = useRef(playingSong);
 
 
+
+
+  // useEffect(() => {
+  //   return () => {
+  //     if(playingSong){
+  //       unloadSong();
+  //     }
+
+  //   };
+  // }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshHomePage();
+
+      return () => {
+        if(playingSongRef.current){
+          unloadSongEnd(playingSongRef.current);
+        }
+      };
+    }, [])
+  );
+
+  const unloadSongEnd = async (song) => {
+    await song.stopAsync();
+    await song.unloadAsync();
+  }
 
   useEffect(() => {
-    getFriends();
+    playingSongRef.current = playingSong;
+  }, [playingSong]);
 
-  }, []);
+  const refreshHomePage = async () => {
+    setAllSongs([]);
+    setCurrentSongs([]);
+    setCurrentUsersSongsIndex(0);
+    setCurrentSongIndex(0);
+    setCurrentRecUser(null);
+    setAllSongObjects([]);
+    setExcludedSongs([]);
+    setPlayingSong(null);
+    setPaused(true);
+    setNoMoreSongs(false);
+    await getFriends();
+  };
 
 
 
@@ -253,12 +295,12 @@ export default HomeScreen = ({ navigation }) => {
     } else {
 
       if (!paused) {
-        console.log("pausing");
+        console.log(playingSong._loaded);
         playingSong.pauseAsync().then(() => {
           setPaused(true);
         });
       } else {
-        console.log("playing");
+        console.log(playingSong._loaded);
         playingSong.playAsync().then(() => {
           setPaused(false);
         });
