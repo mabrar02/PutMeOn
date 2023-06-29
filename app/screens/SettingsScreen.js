@@ -6,6 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { CommonActions } from '@react-navigation/native';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import { ref, child, get, remove, onValue } from 'firebase/database';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 
 const SettingsScreen = ({navigation}) => {
@@ -74,6 +75,7 @@ const SettingsScreen = ({navigation}) => {
     const dbRef = await SecureStore.getItemAsync("db_key");
     const removeSong = ref(FIREBASE_DB, `users/${dbRef}/Music/DislikedSongs`);
     remove(removeSong);
+    showToast();
   }
 
   const logout = async () => {
@@ -89,6 +91,17 @@ const SettingsScreen = ({navigation}) => {
       index: 0,
       routes: [{ name: 'Onboarding' }],
     }));
+  }
+
+  const showToast = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Songs Reset',
+      text2: "Your seen songs have been reset!",
+      position: "bottom",
+      bottomOffset: 75,
+      visibilityTime: 2000,
+    });
   }
 
   return (

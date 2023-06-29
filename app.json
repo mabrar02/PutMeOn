@@ -2,6 +2,7 @@
   "expo": {
     "name": "PutMeOn",
     "slug": "PutMeOn",
+    "owner": "mabrar02",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
