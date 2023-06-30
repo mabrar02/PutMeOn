@@ -2,13 +2,27 @@ import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Image } from 'rea
 import React, { useEffect, useState } from 'react';
 
 export default MusicSwipeable = ({item}) => {
+  const artistNames = item.artists.map((artist) => artist.name).join(', ');
+  const maxLength = 46;
+  const maxArtistLength = 35;
+
+  let displayedTrackTitle = item.title;
+  if (displayedTrackTitle.length > maxLength) {
+    displayedTrackTitle = displayedTrackTitle.substring(0, maxLength - 3) + '...';
+  }
+
+  let displayedTrackArtists = artistNames;
+  if (displayedTrackArtists.length > maxArtistLength) {
+    displayedTrackArtists = displayedTrackArtists.substring(0, maxArtistLength - 3) + '...';
+  }
+
   return (
     <View style={{width: 300, alignSelf: "center", bottom: 40,}}>
         <View style={styles.song}> 
           <Image style={styles.songImage} source={item.images[1]}/> 
           <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{item.title}</Text>
-            <Text style={styles.songArtist}>{item.artists[0].name}</Text>
+            <Text style={styles.songTitle}>{displayedTrackTitle}</Text>
+            <Text style={styles.songArtist}>{displayedTrackArtists}</Text>
           </View>
         </View>
     </View>
@@ -35,7 +49,7 @@ const styles = StyleSheet.create({
     songTitle: {
       fontFamily: "Rubik-SemiBold",
       color: "#3E6F38",
-      fontSize: 26,
+      fontSize: 20,
       marginBottom: 5,
   
     },
