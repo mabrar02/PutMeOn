@@ -108,7 +108,7 @@ export default SavedSongs = () => {
     <View style={styles.container}>
       {songs.length == 0 && (
         <View style={{alignItems: "center", justifyContent:"center", alignContent: "center", top: 150, width: (Dimensions.get("window").width * 0.8)}}> 
-          <Text style={styles.emptylistText}>You have no saved songs yet, discover what your friend listen to!</Text>
+          <Text style={styles.emptylistText}>You have no saved songs yet, discover what your friends listen to!</Text>
         </View>
       )}
       <FlatList

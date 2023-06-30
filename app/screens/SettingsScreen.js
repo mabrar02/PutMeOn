@@ -105,21 +105,25 @@ const SettingsScreen = ({navigation}) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, alignItems: 'center', alignContent: 'center', backgroundColor: '#EBFFE9' }}>
-      <View style={{ flex: 0.5 }}>
-        <Image style={styles.profilePic} source={{ uri: pfpUrl }} />
-        <View style={{ marginVertical: 20, alignItems: "center" }}>
-          <Text style={styles.displayName}>{displayName}</Text>
-          <Text style={styles.userName}>@{userName}</Text>
-        </View>
+    <View style={{flex: 1, alignItems: 'center', alignContent: 'center', backgroundColor: '#3E6F38' }}>
+      <SafeAreaView style={{ flex: 0.35, backgroundColor: "#3E6F38" }}>
+
+          <Image style={styles.profilePic} source={{ uri: pfpUrl }} />
+          <View style={{ marginTop: 10, marginBottom: 20, alignItems: "center" }}>
+            <Text style={styles.displayName}>{displayName}</Text>
+            <Text style={styles.userName}>@{userName}</Text>
+          </View>
+      </SafeAreaView>
+      <View style={{flex: 0.65, backgroundColor: "#EBFFE9", paddingTop: 30}}>
+        <TouchableOpacity style={styles.buttonStyle} onPress={() => confirmLogout()}>
+          <Text style={styles.buttonText}>LOGOUT</Text> 
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.buttonStyle, {backgroundColor: "#9fd0ed"}]} onPress={() => confirmReset()}>
+          <Text style={styles.buttonText}>RESET SEEN SONGS</Text> 
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.buttonStyle} onPress={() => confirmLogout()}>
-        <Text style={styles.buttonText}>LOGOUT</Text> 
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.buttonStyle, {backgroundColor: "#9fd0ed"}]} onPress={() => confirmReset()}>
-        <Text style={styles.buttonText}>RESET SEEN SONGS</Text> 
-      </TouchableOpacity>
-    </SafeAreaView>
+    </View>
+
   );
 };
 
@@ -139,7 +143,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F06363",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 50,
+        marginBottom: 50,
     },
 
     profilePic: {
@@ -152,7 +156,7 @@ const styles = StyleSheet.create({
 
     displayName: {
         fontFamily: "Rubik-SemiBold",
-        color: "#3E6F38",
+        color: "#ECF39E",
         fontSize: 32,
         alignSelf: "center",
         marginBottom: 5,
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
 
     userName: {
       fontFamily: "Rubik-Regular",
-      color: "#6C9967",
+      color: "#EBFFE9",
 
     },
 

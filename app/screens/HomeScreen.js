@@ -180,15 +180,17 @@ export default HomeScreen = ({ navigation }) => {
 
 
     const updateSongRef = ref(FIREBASE_DB, `users/${currentRecUser}/Music/YourMusic/${songToSave.songId}`);
-    if(updateSongRef){
-      update(updateSongRef, {
-        likes: increasedLikes,
-      });
+    get(updateSongRef).then((snapshot) => {
+      if(snapshot.exists()){
+        update(updateSongRef, {
+          likes: increasedLikes,
+        });
+      }
+      else{
+        console.log("error with updating song");
+      }
+    })
 
-    }
-    else{
-      console.log("errror with updating song");
-    }
   }
 
   const dislikeToDatabase = async () => {
