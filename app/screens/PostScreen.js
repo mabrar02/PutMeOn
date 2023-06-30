@@ -1,5 +1,6 @@
 import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, FlatList, Image, Dimensions, Modal } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef, } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faMagnifyingGlass} from '@fortawesome/free-solid-svg-icons/faMagnifyingGlass';
 import { faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
@@ -11,6 +12,7 @@ import { BlurView } from 'expo-blur';
 import { FIREBASE_DB } from '../../firebaseConfig';
 import {ref, child, get, set} from 'firebase/database';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { Audio } from 'expo-av';
 
 
 const PostScreen = () => {
@@ -23,6 +25,11 @@ const PostScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [displayedArtistNames, setDisplayedArtistNames] = useState("");
   const [displayedTrackName, setDisplayedTrackName] = useState("");
+  const [songToPlay, setSongToPlay] = useState(null);
+  const [playingSound, setPlayingSound] = useState(null);
+  const [paused, setPaused] = useState(true);
+
+  const playingSongRef = useRef(playingSound);
 
   const maxLength = 27;
   const maxArtistLength = 27;
@@ -30,7 +37,72 @@ const PostScreen = () => {
   const searchImage = require("../assets/images/search.png");
   const unknownSongImage = require("../assets/images/unknown.png");
 
+  useEffect(() => {
+    if(songToPlay){
+      playSong()
+    }
+  }, [songToPlay]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      reset();
+
+      return () => {
+        if(playingSongRef.current){
+          unloadSongEnd(playingSongRef.current);
+        }
+      };
+    }, [])
+  );
+
+  const reset = () => {
+    setSongToPlay(null);
+    setPlayingSound(null);
+    setPaused(true);
+  }
+
+  const unloadSongEnd = async (song) => {
+    await song.stopAsync();
+    await song.unloadAsync();
+  }
+
+  useEffect(() => {
+    playingSongRef.current = playingSound;
+  }, [playingSound]);
+
+
+  const playSong = async () => {
+    if(playingSound){
+      await playingSound.stopAsync();
+      await playingSound.unloadAsync();
+    }
+    const token = await SecureStore.getItemAsync("access_token");
+    const result = await fetch(`https://api.spotify.com/v1/tracks/${songToPlay.id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    ).then(res => res.json());
+
+    const sound = new Audio.Sound();
+
+    await sound.loadAsync({
+      uri: result.preview_url
+    });
+
+    setPlayingSound(sound);
+    sound.playAsync();
+    
+  };
+
   const confirmPost = (track) => {
+    if(playingSound){
+      unloadSongEnd(playingSound);
+      reset();
+    }
     setSelectedTrack(track);
     setModalVisible(true);
 
@@ -138,6 +210,26 @@ const PostScreen = () => {
     });
 }
 
+  const confirmPlaySong = (track) => {
+    if(songToPlay && track.id == songToPlay.id && playingSound){
+      if (!paused) {
+        playingSound.pauseAsync().then(() => {
+          setPaused(true);
+        });
+        return true;
+      } else {
+
+        playingSound.playAsync().then(() => {
+          setPaused(false);
+        });
+        return false;
+      }
+    }
+    setSongToPlay(track);
+    return false;
+  }
+
+
   return (
     <View style={{ flex: 1, }}>
       <SafeAreaView style={styles.header}>
@@ -196,7 +288,7 @@ const PostScreen = () => {
         <FlatList
           data={trackData}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <TrackItem item={item} onConfirmPost={confirmPost} />}
+          renderItem={({ item }) => <TrackItem item={item} onConfirmPost={confirmPost} onPlaySong={confirmPlaySong}/>}
           contentContainerStyle={styles.flatListContainer}
         />
 

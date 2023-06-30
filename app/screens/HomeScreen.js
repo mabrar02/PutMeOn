@@ -24,26 +24,11 @@ export default HomeScreen = ({ navigation }) => {
   const [playingSong, setPlayingSong] = useState(null);
 
   const [songObjects, setAllSongObjects] = useState([]);
-
   const [excludedSongs, setExcludedSongs] = useState([]);
-
   const [paused, setPaused] = useState(true);
   const [noMoreSongs, setNoMoreSongs] = useState(false);
-
   const swiperRef = useRef(null);
   const playingSongRef = useRef(playingSong);
-
-
-
-
-  // useEffect(() => {
-  //   return () => {
-  //     if(playingSong){
-  //       unloadSong();
-  //     }
-
-  //   };
-  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -128,6 +113,7 @@ export default HomeScreen = ({ navigation }) => {
       setExcludedSongs(newExclusions);
     }
 
+
     const songsPromises = await friendsList.map(async (friend) => {
       const friendSongsRef = ref(FIREBASE_DB, `users/${friend}/Music/YourMusic`);
       const friendSongsSnapshot = await get(friendSongsRef);
@@ -144,6 +130,8 @@ export default HomeScreen = ({ navigation }) => {
           return null;
         }
         else{
+          console.log(Object.keys(filteredSongData));
+          newExclusions = newExclusions.concat(Object.keys(filteredSongData));
           return { user: friend, songs: filteredSongData };
         }
       } else {
@@ -176,18 +164,31 @@ export default HomeScreen = ({ navigation }) => {
 
 
     const savedSongsRef = ref(FIREBASE_DB, `users/${dbRef}/Music/SavedSongs/${songToSave.songId}`);
-    set(savedSongsRef, {
+    if(savedSongsRef){
+      set(savedSongsRef, {
         title: songToSave.title,
         artists: songToSave.artists,
         images: songToSave.images,
         putOnBy: friend.displayName,
         songId: songToSave.songId,
-    });
+      });
+
+    }
+    else{
+      console.log("errror with saving song");
+    }
+
 
     const updateSongRef = ref(FIREBASE_DB, `users/${currentRecUser}/Music/YourMusic/${songToSave.songId}`);
-    update(updateSongRef, {
-      likes: increasedLikes,
-    });
+    if(updateSongRef){
+      update(updateSongRef, {
+        likes: increasedLikes,
+      });
+
+    }
+    else{
+      console.log("errror with updating song");
+    }
   }
 
   const dislikeToDatabase = async () => {

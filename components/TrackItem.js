@@ -4,9 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import {faCircleArrowUp} from '@fortawesome/free-solid-svg-icons/faCircleArrowUp'
 
 
-const TrackItem = ({item, onConfirmPost}) => {
+const TrackItem = ({item, onConfirmPost, onPlaySong, onPauseSong}) => {
+    const [paused, setPaused] = useState(true);
+
     const artistNames = item.artists.map(artist => artist.name).join(', ');
-    const maxLength = 30;
+    const maxLength = 27;
     const maxArtistLength = 35;
 
 
@@ -24,18 +26,29 @@ const TrackItem = ({item, onConfirmPost}) => {
         onConfirmPost(item)
     }
 
+    const play = () => {
+        const pauseState = onPlaySong(item);
+        console.log("playing: " + displayedTrackTitle + pauseState);
+        setPaused(pauseState);
+    }
+
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={[styles.container, {backgroundColor: paused ? "#515151"  : "#395e3c"}]} onPress={() => play()}>
         <Image source={item.album.images[2]} style={styles.trackImage}/>
         <View style={styles.trackDetails}>
-            <Text style={styles.songTitle}>{displayedTrackTitle}</Text>
+            <View style={{flexDirection: "row", alignItems: "center"}}>
+                <Text style={styles.songTitle}>{displayedTrackTitle}</Text>
+                {(item.explicit) && <Text style={{color: "#515151", backgroundColor: "#fff", width: 15, height: 15, textAlign: "center", fontFamily: "Rubik-Medium", marginHorizontal: 8}}>E</Text>
+}
+            </View>
+
             <Text style={styles.songArtists}>{displayedTrackArtists}</Text>
         </View>
         <TouchableOpacity style={styles.postButton} onPress={confirmPost}>
             <FontAwesomeIcon icon={faCircleArrowUp} size={40} color='#fff'/>
         </TouchableOpacity>
 
-    </View>
+    </TouchableOpacity>
 
   )
 }
