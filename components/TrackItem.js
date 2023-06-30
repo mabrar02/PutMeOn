@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import {faCircleArrowUp} from '@fortawesome/free-solid-svg-icons/faCircleArrowUp'
 
 
-const TrackItem = ({item, onConfirmPost, onPlaySong, onPauseSong}) => {
+const TrackItem = ({item, onConfirmPost, onPlaySong, onPauseSong, backgroundColor}) => {
     const [paused, setPaused] = useState(true);
 
     const artistNames = item.artists.map(artist => artist.name).join(', ');
@@ -28,12 +28,11 @@ const TrackItem = ({item, onConfirmPost, onPlaySong, onPauseSong}) => {
 
     const play = () => {
         const pauseState = onPlaySong(item);
-        console.log("playing: " + displayedTrackTitle + pauseState);
         setPaused(pauseState);
     }
 
   return (
-    <TouchableOpacity style={[styles.container, {backgroundColor: paused ? "#515151"  : "#395e3c"}]} onPress={() => play()}>
+    <TouchableOpacity style={[styles.container, {backgroundColor}]} onPress={() => play()} activeOpacity={0.9}>
         <Image source={item.album.images[2]} style={styles.trackImage}/>
         <View style={styles.trackDetails}>
             <View style={{flexDirection: "row", alignItems: "center"}}>

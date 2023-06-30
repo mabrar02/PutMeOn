@@ -29,6 +29,8 @@ const PostScreen = () => {
   const [playingSound, setPlayingSound] = useState(null);
   const [paused, setPaused] = useState(true);
 
+  const [selectedId, setSelectedId] = useState();
+
   const playingSongRef = useRef(playingSound);
 
   const maxLength = 27;
@@ -36,6 +38,13 @@ const PostScreen = () => {
 
   const searchImage = require("../assets/images/search.png");
   const unknownSongImage = require("../assets/images/unknown.png");
+
+  const renderItem = ({item}) => {
+    const backgroundColor = item.id === selectedId ? "#7bb580" : "#515151";
+    return(
+      <TrackItem item={item} onConfirmPost={confirmPost} onPlaySong={confirmPlaySong} backgroundColor={backgroundColor}/>
+    );
+  }
 
   useEffect(() => {
     if(songToPlay){
@@ -102,6 +111,7 @@ const PostScreen = () => {
     if(playingSound){
       unloadSongEnd(playingSound);
       reset();
+      setSelectedId(-1);
     }
     setSelectedTrack(track);
     setModalVisible(true);
@@ -167,6 +177,11 @@ const PostScreen = () => {
     setShowClearButton(false);
     setShowBlankPrompt(true);
     setShowUnknownPrompt(false);
+    if(playingSound){
+      unloadSongEnd(playingSound);
+      reset();
+      setSelectedId(-1);
+    }
   };
 
   const touchElsewhere = async () => {
@@ -211,6 +226,7 @@ const PostScreen = () => {
 }
 
   const confirmPlaySong = (track) => {
+    setSelectedId(track.id)
     if(songToPlay && track.id == songToPlay.id && playingSound){
       if (!paused) {
         playingSound.pauseAsync().then(() => {
@@ -287,9 +303,10 @@ const PostScreen = () => {
         )}
         <FlatList
           data={trackData}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <TrackItem item={item} onConfirmPost={confirmPost} onPlaySong={confirmPlaySong}/>}
+          renderItem={renderItem}
           contentContainerStyle={styles.flatListContainer}
+          keyExtractor={item => item.id}
+          extraData={selectedId}
         />
 
         {selectedTrack && (
