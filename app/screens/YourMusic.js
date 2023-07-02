@@ -1,5 +1,6 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, Alert, Dimensions } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import TestMusic from '../../components/TestMusic';
 import MusicComponent from '../../components/MusicComponent';
 import * as SecureStore from "expo-secure-store";
@@ -8,10 +9,17 @@ import { ref, child, get, remove, onValue } from 'firebase/database';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import DeleteSong from '../../components/DeleteSong';
 import Toast from 'react-native-toast-message';
+import { Audio } from 'expo-av';
 
 export default YourMusic = () => {
   const [songs, setSongs] = useState([]);
   const [isDatabaseEmpty, setDatabaseEmpty] = useState(false);
+
+  const [songToPlay, setSongToPlay] = useState(null);
+  const [playingSound, setPlayingSound] = useState(null);
+  const [paused, setPaused] = useState(true);
+  const [selectedId, setSelectedId] = useState();
+  const playingSongRef = useRef(playingSound);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,6 +47,95 @@ export default YourMusic = () => {
     fetchData();
   }, []);
 
+  const renderItem = ({item}) => {
+    const backgroundColor = item.songId === selectedId ? "#a6a6a6" : "#515151";
+    return(
+      <MusicComponent item={item} savedSongs={false} onDelete={confirmDeleteSong} onAdd={confirmAddSong} onPlaySong={confirmPlaySong} backgroundColor={backgroundColor}/>
+    );
+  }
+
+  useEffect(() => {
+    if(songToPlay){
+      playSong()
+    }
+  }, [songToPlay]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      reset();
+
+
+      return () => {
+        if(playingSongRef.current){
+          unloadSongEnd(playingSongRef.current);
+          setSelectedId(-1);
+        }
+      };
+    }, [])
+  );
+
+  const reset = () => {
+    setSongToPlay(null);
+    setPlayingSound(null);
+    setPaused(true);
+  }
+
+  useEffect(() => {
+    playingSongRef.current = playingSound;
+  }, [playingSound]);
+
+  const unloadSongEnd = async (song) => {
+    await song.stopAsync();
+    await song.unloadAsync();
+  }
+
+  const playSong = async () => {
+    if(playingSound){
+      await playingSound.stopAsync();
+      await playingSound.unloadAsync();
+    }
+    const token = await SecureStore.getItemAsync("access_token");
+    const result = await fetch(`https://api.spotify.com/v1/tracks/${songToPlay.songId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    ).then(res => res.json());
+
+    const sound = new Audio.Sound();
+
+    await sound.loadAsync({
+      uri: result.preview_url
+    });
+
+    setPlayingSound(sound);
+    sound.playAsync();
+    
+  };
+
+  const confirmPlaySong = (track) => {
+    setSelectedId(track.songId)
+    if(songToPlay && track.songId == songToPlay.songId && playingSound){
+      if (!paused) {
+        playingSound.pauseAsync().then(() => {
+          setPaused(true);
+        });
+        return true;
+      } else {
+
+        playingSound.playAsync().then(() => {
+          setPaused(false);
+        });
+        return false;
+      }
+    }
+    setSongToPlay(track);
+    return false;
+  }
+
   const clearAllSongs = async () => {
     const userId = await SecureStore.getItemAsync('db_key').then(
       (key) => clearFromDB(key)
@@ -50,6 +147,11 @@ export default YourMusic = () => {
   };
 
   const confirmClear = () => {
+    if(playingSound){
+      unloadSongEnd(playingSound);
+      reset();
+      setSelectedId(-1);
+    }
     Alert.alert(
       'Clear Songs',
       'Are you sure you want to clear all your songs? This action is not reversible!',
@@ -62,6 +164,11 @@ export default YourMusic = () => {
   };
 
   const confirmDeleteSong = async (item) => {
+    if(playingSound){
+      unloadSongEnd(playingSound);
+      reset();
+      setSelectedId(-1);
+    }
     console.log(item.songId);
     const userId = await SecureStore.getItemAsync("db_key");
     const removeSong = ref(FIREBASE_DB, `users/${userId}/Music/YourMusic/${item.songId}`);
@@ -69,6 +176,11 @@ export default YourMusic = () => {
   }
   
   const confirmAddSong = async (item) => {
+    if(playingSound){
+      unloadSongEnd(playingSound);
+      reset();
+      setSelectedId(-1);
+    }
     const token = await SecureStore.getItemAsync("access_token");
     await fetch("https://api.spotify.com/v1/me/tracks", {
       method: "PUT",
@@ -114,11 +226,13 @@ export default YourMusic = () => {
         </View>
       )}
       <FlatList
-        data={songs}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <MusicComponent item={item} savedSongs={false} onDelete={confirmDeleteSong} onAdd={confirmAddSong}/>}
-        contentContainerStyle={styles.flatListContainer}
-        ListFooterComponent={renderFooter}
+          data={songs}
+          renderItem={renderItem}
+          contentContainerStyle={styles.flatListContainer}
+          keyExtractor={item => item.songId}
+          extraData={selectedId}
+          ListFooterComponent={renderFooter}
+          
       />
 
     </View>

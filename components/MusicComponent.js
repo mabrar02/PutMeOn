@@ -1,5 +1,5 @@
-import { Dimensions, StyleSheet, Text, View, Image, Alert } from 'react-native';
-import React from 'react';
+import { Dimensions, StyleSheet, Text, View, Image, Alert, TouchableOpacity } from 'react-native';
+import React, {useState} from 'react';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedGestureHandler,
@@ -12,8 +12,10 @@ import { faTrashCan } from '@fortawesome/free-regular-svg-icons/faTrashCan';
 import { faBarsStaggered } from '@fortawesome/free-solid-svg-icons/faBarsStaggered';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
-export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
+
+export default MusicComponent = ({ item, savedSongs, onDelete, onAdd, onPlaySong, backgroundColor }) => {
   const artistNames = item.artists.map((artist) => artist.name).join(', ');
+  const [paused, setPaused] = useState(true);
   const maxLength = 25;
   const maxArtistLength = 30;
   const screenWidth = Dimensions.get('window').width;
@@ -46,7 +48,13 @@ export default MusicComponent = ({ item, savedSongs, onDelete, onAdd }) => {
     onAdd(item);
   }
 
+  const play = () => {
+    const pauseState = onPlaySong(item);
+    setPaused(pauseState);
+  }
+
   const handleDeleteConfirmation = () => {
+    
     Alert.alert(
       'Delete Song',
       'Are you sure you want to delete this song?',
@@ -142,7 +150,8 @@ const rContainerStyle = useAnimatedStyle(() => {
 })
 
   return (
-    <Animated.View style={[styles.container, rContainerStyle]}>
+    <TouchableOpacity onPress={() => play()} activeOpacity={0.9}>
+      <Animated.View style={[styles.container, rContainerStyle]}>
         <Animated.View style={[styles.addContainer, rDelete]}>
           <FontAwesomeIcon icon={faBarsStaggered} size={40} color='#fff'/>
         </Animated.View>
@@ -150,7 +159,7 @@ const rContainerStyle = useAnimatedStyle(() => {
           <FontAwesomeIcon icon={faTrashCan} size={40} color='#fff'/>
         </Animated.View>
         <PanGestureHandler onGestureEvent={panGestureEvent}>
-            <Animated.View style={[{flex: 1, flexDirection: "row", backgroundColor: "#515151",},rStyle]}>
+            <Animated.View style={[{flex: 1, flexDirection: "row", backgroundColor: "#515151",},rStyle, {backgroundColor}]}>
 
                 <Image source={item.images[0]} style={styles.trackImage}/>
                 <View style={styles.trackDetails}>
@@ -176,7 +185,9 @@ const rContainerStyle = useAnimatedStyle(() => {
         </PanGestureHandler>
 
 
-    </Animated.View>
+      </Animated.View>
+    </TouchableOpacity>
+
 
 
   )

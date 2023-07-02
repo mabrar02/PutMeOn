@@ -40,7 +40,7 @@ const PostScreen = () => {
   const unknownSongImage = require("../assets/images/unknown.png");
 
   const renderItem = ({item}) => {
-    const backgroundColor = item.id === selectedId ? "#7bb580" : "#515151";
+    const backgroundColor = item.id === selectedId ? "#a6a6a6" : "#515151";
     return(
       <TrackItem item={item} onConfirmPost={confirmPost} onPlaySong={confirmPlaySong} backgroundColor={backgroundColor}/>
     );
@@ -55,6 +55,7 @@ const PostScreen = () => {
   useFocusEffect(
     React.useCallback(() => {
       reset();
+      setSelectedId(-1);
 
       return () => {
         if(playingSongRef.current){
